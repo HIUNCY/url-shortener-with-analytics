@@ -20,9 +20,9 @@ type Config struct {
 
 // ServerConfig menampung semua konfigurasi untuk server.
 type ServerConfig struct {
-	Host string `mapstructure:"host"`
-	Port string `mapstructure:"port"`
-	Env  string `mapstructure:"env"`
+	BaseURL string `mapstructure:"baseurl"`
+	Port    string `mapstructure:"port"`
+	Env     string `mapstructure:"env"`
 }
 
 // DatabaseConfig menampung semua konfigurasi untuk database.

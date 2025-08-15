@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/HIUNCY/url-shortener-with-analytics/configs"
 	"github.com/HIUNCY/url-shortener-with-analytics/internal/domain"
 	"github.com/HIUNCY/url-shortener-with-analytics/internal/dto/request"
 	"github.com/HIUNCY/url-shortener-with-analytics/pkg/utils"
@@ -23,10 +24,11 @@ type URLService interface {
 
 type urlService struct {
 	urlRepo domain.URLRepository
+	cfg     configs.Config
 }
 
-func NewURLService(urlRepo domain.URLRepository) URLService {
-	return &urlService{urlRepo: urlRepo}
+func NewURLService(urlRepo domain.URLRepository, cfg configs.Config) URLService {
+	return &urlService{urlRepo: urlRepo, cfg: cfg}
 }
 
 func (s *urlService) CreateShortURL(userID uuid.UUID, req request.CreateURLRequest) (*CreateURLResult, error) {
@@ -77,8 +79,7 @@ func (s *urlService) CreateShortURL(userID uuid.UUID, req request.CreateURLReque
 		return nil, err
 	}
 
-	// TODO: Ganti "http://localhost:8080" dengan domain dari config
-	shortURLString := fmt.Sprintf("http://localhost:8080/%s", newURL.ShortCode)
+	shortURLString := fmt.Sprintf("%s/%s", s.cfg.Server.BaseURL, newURL.ShortCode)
 	qrCode, err := utils.GenerateQRCodeBase64(shortURLString, 256)
 	if err != nil {
 		// Log error tapi jangan gagalkan proses utama

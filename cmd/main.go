@@ -50,7 +50,7 @@ func main() {
 	urlRepository := postgres.NewURLRepository(db)
 	authService := services.NewAuthService(userRepository, config)
 	userService := services.NewUserService(userRepository)
-	urlService := services.NewURLService(urlRepository)
+	urlService := services.NewURLService(urlRepository, config)
 	authHandler := handlers.NewAuthHandler(authService, config)
 	profileHandler := handlers.NewProfileHandler(userService)
 	urlHandler := handlers.NewURLHandler(urlService)
