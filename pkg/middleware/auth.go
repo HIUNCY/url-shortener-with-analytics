@@ -5,37 +5,48 @@ import (
 	"strings"
 
 	"github.com/HIUNCY/url-shortener-with-analytics/configs"
+	"github.com/HIUNCY/url-shortener-with-analytics/internal/domain"
 	"github.com/HIUNCY/url-shortener-with-analytics/internal/dto/response"
 	"github.com/HIUNCY/url-shortener-with-analytics/pkg/utils"
 	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 )
 
-// AuthMiddleware adalah middleware untuk memvalidasi JWT Access Token.
-func AuthMiddleware(cfg configs.JWTConfig) gin.HandlerFunc {
+func AuthMiddleware(cfg configs.JWTConfig, userRepo domain.UserRepository) gin.HandlerFunc {
 	return func(c *gin.Context) {
+		var userID uuid.UUID
+
+		// Coba autentikasi via Bearer Token
 		authHeader := c.GetHeader("Authorization")
-		if authHeader == "" {
-			response.SendError(c, http.StatusUnauthorized, "UNAUTHORIZED", "Authorization header is required", nil)
+		if strings.HasPrefix(authHeader, "Bearer ") {
+			tokenString := strings.TrimPrefix(authHeader, "Bearer ")
+			claims, err := utils.ValidateToken(tokenString, cfg.SecretKey)
+			if err != nil {
+				response.SendError(c, http.StatusUnauthorized, "UNAUTHORIZED", "Invalid or expired token", nil)
+				return
+			}
+			userID = claims.UserID
+		} else {
+			// Jika tidak ada Bearer Token, coba via API Key
+			apiKey := c.GetHeader("X-API-Key")
+			if apiKey == "" {
+				response.SendError(c, http.StatusUnauthorized, "UNAUTHORIZED", "Authorization header or X-API-Key header is required", nil)
+				return
+			}
+			user, err := userRepo.FindByAPIKey(apiKey)
+			if err != nil {
+				response.SendError(c, http.StatusUnauthorized, "UNAUTHORIZED", "Invalid API Key", nil)
+				return
+			}
+			userID = user.ID
+		}
+
+		if userID == uuid.Nil {
+			response.SendError(c, http.StatusUnauthorized, "UNAUTHORIZED", "Could not authenticate user", nil)
 			return
 		}
 
-		// Format header harus "Bearer {token}"
-		parts := strings.Split(authHeader, " ")
-		if len(parts) != 2 || parts[0] != "Bearer" {
-			response.SendError(c, http.StatusUnauthorized, "UNAUTHORIZED", "Authorization header format must be Bearer {token}", nil)
-			return
-		}
-
-		tokenString := parts[1]
-		claims, err := utils.ValidateToken(tokenString, cfg.SecretKey)
-		if err != nil {
-			response.SendError(c, http.StatusUnauthorized, "UNAUTHORIZED", "Invalid or expired token", nil)
-			return
-		}
-
-		// Simpan user ID di context untuk digunakan oleh handler selanjutnya
-		c.Set("userID", claims.UserID)
-
+		c.Set("userID", userID)
 		c.Next()
 	}
 }

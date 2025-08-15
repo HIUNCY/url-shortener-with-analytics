@@ -11,6 +11,23 @@ definitions:
     - current_password
     - new_password
     type: object
+  request.CreateURLRequest:
+    properties:
+      custom_alias:
+        type: string
+      description:
+        type: string
+      expires_at:
+        type: string
+      original_url:
+        type: string
+      password:
+        type: string
+      title:
+        type: string
+    required:
+    - original_url
+    type: object
   request.LoginRequest:
     properties:
       email:
@@ -79,6 +96,40 @@ definitions:
         $ref: '#/definitions/response.APIKeyResponse'
       message:
         example: API key regenerated successfully
+        type: string
+      success:
+        example: true
+        type: boolean
+      timestamp:
+        type: string
+    type: object
+  response.CreateURLResponse:
+    properties:
+      created_at:
+        type: string
+      custom_alias:
+        type: string
+      expires_at:
+        type: string
+      id:
+        type: string
+      original_url:
+        type: string
+      qr_code:
+        type: string
+      short_code:
+        type: string
+      short_url:
+        type: string
+      title:
+        type: string
+    type: object
+  response.CreateURLSuccessResponse:
+    properties:
+      data:
+        $ref: '#/definitions/response.CreateURLResponse'
+      message:
+        example: Short URL created successfully
         type: string
       success:
         example: true
@@ -428,6 +479,43 @@ paths:
       summary: Change user password
       tags:
       - Profile
+  /urls:
+    post:
+      consumes:
+      - application/json
+      description: Creates a new short URL for the authenticated user.
+      parameters:
+      - description: URL Information
+        in: body
+        name: url
+        required: true
+        schema:
+          $ref: '#/definitions/request.CreateURLRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: URL created successfully
+          schema:
+            $ref: '#/definitions/response.CreateURLSuccessResponse'
+        "400":
+          description: Validation error
+          schema:
+            $ref: '#/definitions/response.APIErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.APIErrorResponse'
+        "409":
+          description: Custom alias already exists
+          schema:
+            $ref: '#/definitions/response.APIErrorResponse'
+      security:
+      - BearerAuth: []
+      - ApiKeyAuth: []
+      summary: Create a new short URL
+      tags:
+      - URLs
 securityDefinitions:
   ApiKeyAuth:
     in: header

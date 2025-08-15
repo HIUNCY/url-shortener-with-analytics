@@ -4,7 +4,6 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"gorm.io/gorm"
 )
 
 // URL adalah entitas inti yang merepresentasikan URL yang dipersingkat.
@@ -25,7 +24,6 @@ type URL struct {
 	CreatedAt        time.Time
 	UpdatedAt        time.Time
 	LastClickedAt    *time.Time
-	DeletedAt        gorm.DeletedAt `gorm:"index"`
 }
 
 // URLRepository mendefinisikan kontrak untuk interaksi data URL.

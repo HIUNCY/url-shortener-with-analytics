@@ -47,10 +47,13 @@ func main() {
 
 	// 3. Inisialisasi semua komponen (Dependency Injection)
 	userRepository := postgres.NewUserRepository(db)
+	urlRepository := postgres.NewURLRepository(db)
 	authService := services.NewAuthService(userRepository, config)
 	userService := services.NewUserService(userRepository)
+	urlService := services.NewURLService(urlRepository)
 	authHandler := handlers.NewAuthHandler(authService, config)
 	profileHandler := handlers.NewProfileHandler(userService)
+	urlHandler := handlers.NewURLHandler(urlService)
 
 	// 4. Setup Gin Router
 	router := gin.Default()
@@ -60,8 +63,9 @@ func main() {
 
 	// Grup rute untuk API v1
 	apiV1 := router.Group("/api/v1")
-	routes.SetupAuthRoutes(apiV1, authHandler, config)
-	routes.SetupProfileRoutes(apiV1, profileHandler, config)
+	routes.SetupAuthRoutes(apiV1, authHandler, config, userRepository)
+	routes.SetupProfileRoutes(apiV1, profileHandler, config, userRepository)
+	routes.SetupURLRoutes(apiV1, urlHandler, config, userRepository)
 
 	// 5. Jalankan server
 	serverAddress := fmt.Sprintf(":%s", config.Server.Port)
