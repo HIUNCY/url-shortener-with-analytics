@@ -30,6 +30,12 @@ func (r *urlRepository) FindByCustomAlias(customAlias string) (*domain.URL, erro
 	return &url, err
 }
 
+func (r *urlRepository) FindByID(id uuid.UUID) (*domain.URL, error) {
+	var url domain.URL
+	err := r.db.Where("id = ?", id).First(&url).Error
+	return &url, err
+}
+
 // Implementasi method lain bisa ditambahkan nanti
 func (r *urlRepository) FindAllByUserID(userID uuid.UUID) ([]domain.URL, error) { return nil, nil }
 func (r *urlRepository) Update(url *domain.URL) error                           { return nil }

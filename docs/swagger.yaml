@@ -231,6 +231,49 @@ definitions:
       timestamp:
         type: string
     type: object
+  response.URLDetailsResponse:
+    properties:
+      click_count:
+        type: integer
+      created_at:
+        type: string
+      custom_alias:
+        type: string
+      description:
+        type: string
+      expires_at:
+        type: string
+      id:
+        type: string
+      is_active:
+        type: boolean
+      is_password_protected:
+        type: boolean
+      last_clicked_at:
+        type: string
+      original_url:
+        type: string
+      short_code:
+        type: string
+      short_url:
+        type: string
+      title:
+        type: string
+      unique_click_count:
+        type: integer
+      updated_at:
+        type: string
+    type: object
+  response.URLDetailsSuccessResponse:
+    properties:
+      data:
+        $ref: '#/definitions/response.URLDetailsResponse'
+      success:
+        example: true
+        type: boolean
+      timestamp:
+        type: string
+    type: object
   response.UserResponse:
     properties:
       api_key:
@@ -514,6 +557,41 @@ paths:
       - BearerAuth: []
       - ApiKeyAuth: []
       summary: Create a new short URL
+      tags:
+      - URLs
+  /urls/{url_id}:
+    get:
+      description: Retrieves the details of a specific short URL owned by the user.
+      parameters:
+      - description: URL ID
+        format: uuid
+        in: path
+        name: url_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: URL details retrieved successfully
+          schema:
+            $ref: '#/definitions/response.URLDetailsSuccessResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.APIErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.APIErrorResponse'
+        "404":
+          description: URL not found
+          schema:
+            $ref: '#/definitions/response.APIErrorResponse'
+      security:
+      - BearerAuth: []
+      - ApiKeyAuth: []
+      summary: Get URL details
       tags:
       - URLs
 securityDefinitions:

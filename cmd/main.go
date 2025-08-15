@@ -53,7 +53,7 @@ func main() {
 	urlService := services.NewURLService(urlRepository, config)
 	authHandler := handlers.NewAuthHandler(authService, config)
 	profileHandler := handlers.NewProfileHandler(userService)
-	urlHandler := handlers.NewURLHandler(urlService)
+	urlHandler := handlers.NewURLHandler(urlService, config)
 
 	// 4. Setup Gin Router
 	router := gin.Default()

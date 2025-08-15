@@ -13,5 +13,6 @@ func SetupURLRoutes(router *gin.RouterGroup, urlHandler *handlers.URLHandler, cf
 	urlGroup.Use(middleware.AuthMiddleware(cfg.JWT, userRepo))
 	{
 		urlGroup.POST("", urlHandler.CreateShortURL)
+		urlGroup.GET("/:urlID", urlHandler.GetURLDetails)
 	}
 }

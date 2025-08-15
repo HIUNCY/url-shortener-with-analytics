@@ -20,6 +20,7 @@ type CreateURLResult struct {
 
 type URLService interface {
 	CreateShortURL(userID uuid.UUID, req request.CreateURLRequest) (*CreateURLResult, error)
+	GetURLDetails(urlID, userID uuid.UUID) (*domain.URL, error)
 }
 
 type urlService struct {
@@ -91,4 +92,20 @@ func (s *urlService) CreateShortURL(userID uuid.UUID, req request.CreateURLReque
 		QRCode:   qrCode,
 		ShortURL: shortURLString,
 	}, nil
+}
+
+func (s *urlService) GetURLDetails(urlID, userID uuid.UUID) (*domain.URL, error) {
+	// 1. Ambil URL berdasarkan ID-nya
+	url, err := s.urlRepo.FindByID(urlID)
+	if err != nil {
+		// Jika tidak ditemukan, gorm.ErrRecordNotFound akan dikembalikan
+		return nil, err
+	}
+
+	// 2. Validasi Kepemilikan (Authorization)
+	if url.UserID == nil || *url.UserID != userID {
+		return nil, errors.New("URL_FORBIDDEN")
+	}
+
+	return url, nil
 }

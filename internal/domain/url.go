@@ -31,6 +31,7 @@ type URLRepository interface {
 	Store(url *URL) error
 	FindByShortCode(shortCode string) (*URL, error)
 	FindByCustomAlias(customAlias string) (*URL, error)
+	FindByID(id uuid.UUID) (*URL, error)
 	FindAllByUserID(userID uuid.UUID) ([]URL, error)
 	Update(url *URL) error
 	Delete(url *URL) error
