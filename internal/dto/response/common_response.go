@@ -36,6 +36,12 @@ type ErrorPayload struct {
 	Details []ErrorDetail `json:"details,omitempty"`
 }
 
+type SuccessMessageResponse struct {
+	Success   bool      `json:"success" example:"true"`
+	Message   string    `json:"message" example:"Operation successful"`
+	Timestamp time.Time `json:"timestamp"`
+}
+
 // SendSuccess adalah helper untuk mengirim respons sukses.
 func SendSuccess[T any](c *gin.Context, statusCode int, message string, data T) {
 	c.JSON(statusCode, APIResponse[T]{

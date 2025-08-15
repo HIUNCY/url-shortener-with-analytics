@@ -32,10 +32,10 @@ func (r *userRepository) FindByID(id uuid.UUID) (*domain.User, error) {
 	return &user, err
 }
 func (r *userRepository) FindByAPIKey(apiKey string) (*domain.User, error) {
-	// TODO: Implement later
-	return nil, nil
+	var user domain.User
+	err := r.db.Where("api_key = ?", apiKey).First(&user).Error
+	return &user, err
 }
 func (r *userRepository) Update(user *domain.User) error {
-	// TODO: Implement later
-	return nil
+	return r.db.Save(user).Error
 }

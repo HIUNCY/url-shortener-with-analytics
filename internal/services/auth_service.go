@@ -21,6 +21,7 @@ type AuthService interface {
 	Register(req request.RegisterRequest) (*domain.User, error)
 	Login(req request.LoginRequest) (*LoginResult, error)
 	RefreshToken(refreshToken string) (string, error)
+	Logout(accessToken string) error
 }
 
 type authService struct {
@@ -132,4 +133,10 @@ func (s *authService) RefreshToken(refreshToken string) (string, error) {
 	}
 
 	return newAccessToken, nil
+}
+
+func (s *authService) Logout(accessToken string) error {
+	// Di implementasi sederhana, kita tidak melakukan apa-apa di server.
+	// Logika untuk mem-blacklist token akan ditambahkan di sini nanti saat mengintegrasikan Redis.
+	return nil
 }

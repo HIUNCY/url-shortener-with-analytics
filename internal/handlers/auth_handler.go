@@ -138,3 +138,26 @@ func (h *AuthHandler) RefreshToken(c *gin.Context) {
 		Timestamp: time.Now().UTC(),
 	})
 }
+
+// Logout godoc
+// @Summary Log out a user
+// @Description Invalidates the user's session (client-side).
+// @Tags Authentication
+// @Security BearerAuth
+// @Produce  json
+// @Success 200 {object} response.SuccessMessageResponse "Logged out successfully" // <-- DIUBAH DI SINI
+// @Failure 401 {object} response.APIErrorResponse "Unauthorized"
+// @Router /auth/logout [post]
+func (h *AuthHandler) Logout(c *gin.Context) {
+	// Middleware sudah memvalidasi token, jadi kita hanya perlu menjalankan logika logout dan mengirim respons sukses.
+
+	// Di masa depan, kita bisa ambil token dari header di sini dan meneruskannya ke service untuk di-blacklist.
+
+	// response.SendSuccess(c, http.StatusOK, "Logged out successfully", nil)
+	// Kita buat respons kustom karena data bisa nil
+	c.JSON(http.StatusOK, response.SuccessMessageResponse{
+		Success:   true,
+		Message:   "Logged out successfully",
+		Timestamp: time.Now().UTC(),
+	})
+}
