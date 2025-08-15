@@ -11,5 +11,6 @@ func SetupAuthRoutes(router *gin.RouterGroup, authHandler *handlers.AuthHandler)
 	{
 		authGroup.POST("/register", authHandler.Register)
 		authGroup.POST("/login", authHandler.Login)
+		authGroup.POST("/refresh", authHandler.RefreshToken)
 	}
 }

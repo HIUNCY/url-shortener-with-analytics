@@ -48,7 +48,7 @@ func main() {
 	// 3. Inisialisasi semua komponen (Dependency Injection)
 	userRepository := postgres.NewUserRepository(db)
 	authService := services.NewAuthService(userRepository, config)
-	authHandler := handlers.NewAuthHandler(authService)
+	authHandler := handlers.NewAuthHandler(authService, config)
 
 	// 4. Setup Gin Router
 	router := gin.Default()

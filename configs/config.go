@@ -5,8 +5,10 @@ import (
 )
 
 type JWTConfig struct {
-	SecretKey string `mapstructure:"secretkey"`
-	ExpiresIn string `mapstructure:"expiresin"`
+	SecretKey        string `mapstructure:"secretkey"`
+	ExpiresIn        string `mapstructure:"expiresin"`
+	RefreshSecretKey string `mapstructure:"refreshsecretkey"`
+	RefreshExpiresIn string `mapstructure:"refreshexpiresin"`
 }
 
 // Config menampung semua konfigurasi untuk aplikasi.

@@ -10,6 +10,13 @@ definitions:
     - email
     - password
     type: object
+  request.RefreshTokenRequest:
+    properties:
+      refresh_token:
+        type: string
+    required:
+    - refresh_token
+    type: object
   request.RegisterRequest:
     properties:
       email:
@@ -60,6 +67,8 @@ definitions:
     properties:
       access_token:
         type: string
+      refresh_token:
+        type: string
       user:
         $ref: '#/definitions/response.UserResponse'
     type: object
@@ -70,6 +79,26 @@ definitions:
       message:
         example: Login successful
         type: string
+      success:
+        example: true
+        type: boolean
+      timestamp:
+        type: string
+    type: object
+  response.RefreshTokenResponse:
+    properties:
+      access_token:
+        type: string
+      expires_in:
+        type: integer
+      token_type:
+        example: Bearer
+        type: string
+    type: object
+  response.RefreshTokenSuccessResponse:
+    properties:
+      data:
+        $ref: '#/definitions/response.RefreshTokenResponse'
       success:
         example: true
         type: boolean
@@ -151,6 +180,36 @@ paths:
           schema:
             $ref: '#/definitions/response.APIErrorResponse'
       summary: Log in a user
+      tags:
+      - Authentication
+  /auth/refresh:
+    post:
+      consumes:
+      - application/json
+      description: Generates a new access token using a refresh token.
+      parameters:
+      - description: Refresh Token
+        in: body
+        name: token
+        required: true
+        schema:
+          $ref: '#/definitions/request.RefreshTokenRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Token refreshed successfully
+          schema:
+            $ref: '#/definitions/response.RefreshTokenSuccessResponse'
+        "400":
+          description: Validation error
+          schema:
+            $ref: '#/definitions/response.APIErrorResponse'
+        "401":
+          description: Invalid refresh token
+          schema:
+            $ref: '#/definitions/response.APIErrorResponse'
+      summary: Refresh access token
       tags:
       - Authentication
   /auth/register:

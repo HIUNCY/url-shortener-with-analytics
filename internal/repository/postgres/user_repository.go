@@ -27,8 +27,9 @@ func (r *userRepository) FindByEmail(email string) (*domain.User, error) {
 
 // Implementasi method lain dari interface bisa ditambahkan di sini nanti.
 func (r *userRepository) FindByID(id uuid.UUID) (*domain.User, error) {
-	// TODO: Implement later
-	return nil, nil
+	var user domain.User
+	err := r.db.Where("id = ?", id).First(&user).Error
+	return &user, err
 }
 func (r *userRepository) FindByAPIKey(apiKey string) (*domain.User, error) {
 	// TODO: Implement later

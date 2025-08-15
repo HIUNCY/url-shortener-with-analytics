@@ -4,8 +4,9 @@ import "time"
 
 // LoginResponse adalah DTO untuk payload data pada respons login sukses.
 type LoginResponse struct {
-	AccessToken string       `json:"access_token"`
-	User        UserResponse `json:"user"`
+	AccessToken  string       `json:"access_token"`
+	RefreshToken string       `json:"refresh_token"`
+	User         UserResponse `json:"user"`
 }
 
 // LoginSuccessResponse adalah struktur top-level untuk respons sukses login.
@@ -14,4 +15,16 @@ type LoginSuccessResponse struct {
 	Message   string        `json:"message" example:"Login successful"`
 	Data      LoginResponse `json:"data"`
 	Timestamp time.Time     `json:"timestamp"`
+}
+
+type RefreshTokenResponse struct {
+	AccessToken string `json:"access_token"`
+	ExpiresIn   int64  `json:"expires_in"`
+	TokenType   string `json:"token_type" example:"Bearer"`
+}
+
+type RefreshTokenSuccessResponse struct {
+	Success   bool                 `json:"success" example:"true"`
+	Data      RefreshTokenResponse `json:"data"`
+	Timestamp time.Time            `json:"timestamp"`
 }

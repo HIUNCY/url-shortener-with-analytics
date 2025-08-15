@@ -11,9 +11,16 @@ import (
 	"gorm.io/gorm"
 )
 
+type LoginResult struct {
+	User         *domain.User
+	AccessToken  string
+	RefreshToken string
+}
+
 type AuthService interface {
 	Register(req request.RegisterRequest) (*domain.User, error)
-	Login(req request.LoginRequest) (*domain.User, string, error)
+	Login(req request.LoginRequest) (*LoginResult, error)
+	RefreshToken(refreshToken string) (string, error)
 }
 
 type authService struct {
@@ -68,30 +75,61 @@ func (s *authService) Register(req request.RegisterRequest) (*domain.User, error
 	return newUser, nil
 }
 
-func (s *authService) Login(req request.LoginRequest) (*domain.User, string, error) {
+func (s *authService) Login(req request.LoginRequest) (*LoginResult, error) {
 	// 1. Cari user berdasarkan email
 	user, err := s.userRepo.FindByEmail(req.Email)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, "", errors.New("AUTH_INVALID_CREDENTIALS")
+			return nil, errors.New("AUTH_INVALID_CREDENTIALS")
 		}
-		return nil, "", err
+		return nil, err
 	}
 
 	// 2. Verifikasi password
 	if !utils.CheckPasswordHash(req.Password, user.PasswordHash) {
-		return nil, "", errors.New("AUTH_INVALID_CREDENTIALS")
+		return nil, errors.New("AUTH_INVALID_CREDENTIALS")
 	}
 
-	// 3. Generate JWT
-	expiresIn, err := time.ParseDuration(s.cfg.JWT.ExpiresIn)
+	// 3. Generate Access Token
+	accessExpiresIn, _ := time.ParseDuration(s.cfg.JWT.ExpiresIn)
+	accessToken, err := utils.GenerateToken(user.ID, s.cfg.JWT.SecretKey, accessExpiresIn)
 	if err != nil {
-		return nil, "", err // Handle error parsing durasi
-	}
-	token, err := utils.GenerateToken(user.ID, s.cfg.JWT.SecretKey, expiresIn)
-	if err != nil {
-		return nil, "", err
+		return nil, err
 	}
 
-	return user, token, nil
+	// 4. Generate Refresh Token
+	refreshExpiresIn, _ := time.ParseDuration(s.cfg.JWT.RefreshExpiresIn)
+	refreshToken, err := utils.GenerateToken(user.ID, s.cfg.JWT.RefreshSecretKey, refreshExpiresIn)
+	if err != nil {
+		return nil, err
+	}
+
+	return &LoginResult{
+		User:         user,
+		AccessToken:  accessToken,
+		RefreshToken: refreshToken,
+	}, nil
+}
+
+func (s *authService) RefreshToken(refreshToken string) (string, error) {
+	// 1. Validasi refresh token
+	claims, err := utils.ValidateToken(refreshToken, s.cfg.JWT.RefreshSecretKey)
+	if err != nil {
+		return "", errors.New("AUTH_INVALID_REFRESH_TOKEN")
+	}
+
+	// 2. Cek apakah user masih ada (opsional tapi bagus)
+	_, err = s.userRepo.FindByID(claims.UserID)
+	if err != nil {
+		return "", errors.New("AUTH_USER_NOT_FOUND")
+	}
+
+	// 3. Generate access token baru
+	accessExpiresIn, _ := time.ParseDuration(s.cfg.JWT.ExpiresIn)
+	newAccessToken, err := utils.GenerateToken(claims.UserID, s.cfg.JWT.SecretKey, accessExpiresIn)
+	if err != nil {
+		return "", err
+	}
+
+	return newAccessToken, nil
 }
