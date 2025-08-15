@@ -1,0 +1,135 @@
+basePath: /api/v1
+definitions:
+  request.RegisterRequest:
+    properties:
+      email:
+        type: string
+      first_name:
+        type: string
+      last_name:
+        type: string
+      password:
+        minLength: 8
+        type: string
+    required:
+    - email
+    - first_name
+    - last_name
+    - password
+    type: object
+  response.APIErrorResponse:
+    properties:
+      error:
+        $ref: '#/definitions/response.ErrorPayload'
+      request_id:
+        type: string
+      success:
+        type: boolean
+      timestamp:
+        type: string
+    type: object
+  response.ErrorDetail:
+    properties:
+      field:
+        type: string
+      message:
+        type: string
+    type: object
+  response.ErrorPayload:
+    properties:
+      code:
+        type: string
+      details:
+        items:
+          $ref: '#/definitions/response.ErrorDetail'
+        type: array
+      message:
+        type: string
+    type: object
+  response.RegisterSuccessResponse:
+    properties:
+      data:
+        $ref: '#/definitions/response.UserResponse'
+      message:
+        example: User registered successfully
+        type: string
+      success:
+        example: true
+        type: boolean
+      timestamp:
+        type: string
+    type: object
+  response.UserResponse:
+    properties:
+      api_key:
+        type: string
+      created_at:
+        type: string
+      email:
+        type: string
+      first_name:
+        type: string
+      id:
+        type: string
+      last_name:
+        type: string
+      plan_type:
+        type: string
+    type: object
+host: localhost:8080
+info:
+  contact:
+    email: support@swagger.io
+    name: API Support
+    url: http://www.swagger.io/support
+  description: This is a URL shortener service with analytics.
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+  title: URL Shortener API
+  version: "1.0"
+paths:
+  /auth/register:
+    post:
+      consumes:
+      - application/json
+      description: Creates a new user account with the provided details.
+      parameters:
+      - description: User Registration Info
+        in: body
+        name: user
+        required: true
+        schema:
+          $ref: '#/definitions/request.RegisterRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: User registered successfully" // <-- DIUBAH DI SINI
+          schema:
+            $ref: '#/definitions/response.RegisterSuccessResponse'
+        "400":
+          description: Validation error
+          schema:
+            $ref: '#/definitions/response.APIErrorResponse'
+        "409":
+          description: Email already exists
+          schema:
+            $ref: '#/definitions/response.APIErrorResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/response.APIErrorResponse'
+      summary: Register a new user
+      tags:
+      - Authentication
+securityDefinitions:
+  ApiKeyAuth:
+    in: header
+    name: X-API-Key
+    type: apiKey
+  BearerAuth:
+    in: header
+    name: Authorization
+    type: apiKey
+swagger: "2.0"
