@@ -11,3 +11,10 @@ type CreateURLRequest struct {
 	ExpiresAt   *time.Time `json:"expires_at,omitempty"`
 	Password    *string    `json:"password,omitempty"`
 }
+
+type UpdateURLRequest struct {
+	Title       *string    `json:"title,omitempty"`
+	Description *string    `json:"description,omitempty"`
+	ExpiresAt   *time.Time `json:"expires_at,omitempty"`
+	IsActive    *bool      `json:"is_active,omitempty"`
+}

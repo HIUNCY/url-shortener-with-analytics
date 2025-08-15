@@ -28,6 +28,8 @@ type URLService interface {
 	CreateShortURL(userID uuid.UUID, req request.CreateURLRequest) (*CreateURLResult, error)
 	GetURLDetails(urlID, userID uuid.UUID) (*domain.URL, error)
 	GetUserURLs(userID uuid.UUID, options *domain.FindAllOptions) (*URLListResult, error)
+	UpdateURL(urlID, userID uuid.UUID, req request.UpdateURLRequest) (*domain.URL, error)
+	DeleteURL(urlID, userID uuid.UUID) error
 }
 
 type urlService struct {
@@ -139,4 +141,49 @@ func (s *urlService) GetURLDetails(urlID, userID uuid.UUID) (*domain.URL, error)
 	}
 
 	return url, nil
+}
+
+func (s *urlService) UpdateURL(urlID, userID uuid.UUID, req request.UpdateURLRequest) (*domain.URL, error) {
+	// Ambil URL dan verifikasi kepemilikan (sama seperti GetURLDetails)
+	url, err := s.urlRepo.FindByID(urlID)
+	if err != nil {
+		return nil, err
+	}
+	if url.UserID == nil || *url.UserID != userID {
+		return nil, errors.New("URL_FORBIDDEN")
+	}
+
+	// Perbarui field jika ada di request
+	if req.Title != nil {
+		url.Title = req.Title
+	}
+	if req.Description != nil {
+		url.Description = req.Description
+	}
+	if req.ExpiresAt != nil {
+		url.ExpiresAt = req.ExpiresAt
+	}
+	if req.IsActive != nil {
+		url.IsActive = *req.IsActive
+	}
+
+	// Simpan perubahan ke database
+	if err := s.urlRepo.Update(url); err != nil {
+		return nil, err
+	}
+	return url, nil
+}
+
+func (s *urlService) DeleteURL(urlID, userID uuid.UUID) error {
+	// Ambil URL dan verifikasi kepemilikan
+	url, err := s.urlRepo.FindByID(urlID)
+	if err != nil {
+		return err
+	}
+	if url.UserID == nil || *url.UserID != userID {
+		return errors.New("URL_FORBIDDEN")
+	}
+
+	// Hapus URL (soft delete)
+	return s.urlRepo.Delete(url)
 }

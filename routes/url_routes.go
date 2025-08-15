@@ -15,5 +15,7 @@ func SetupURLRoutes(router *gin.RouterGroup, urlHandler *handlers.URLHandler, cf
 		urlGroup.POST("", urlHandler.CreateShortURL)
 		urlGroup.GET("", urlHandler.GetUserURLs)
 		urlGroup.GET("/:urlID", urlHandler.GetURLDetails)
+		urlGroup.PUT("/:urlID", urlHandler.UpdateURL)
+		urlGroup.DELETE("/:urlID", urlHandler.DeleteURL)
 	}
 }

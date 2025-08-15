@@ -72,6 +72,17 @@ definitions:
     - first_name
     - last_name
     type: object
+  request.UpdateURLRequest:
+    properties:
+      description:
+        type: string
+      expires_at:
+        type: string
+      is_active:
+        type: boolean
+      title:
+        type: string
+    type: object
   response.APIErrorResponse:
     properties:
       error:
@@ -660,6 +671,36 @@ paths:
       tags:
       - URLs
   /urls/{url_id}:
+    delete:
+      description: Deletes a specific short URL (soft delete).
+      parameters:
+      - description: URL ID
+        format: uuid
+        in: path
+        name: url_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: URL deleted successfully
+          schema:
+            $ref: '#/definitions/response.SuccessMessageResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.APIErrorResponse'
+        "404":
+          description: URL not found
+          schema:
+            $ref: '#/definitions/response.APIErrorResponse'
+      security:
+      - BearerAuth: []
+      - ApiKeyAuth: []
+      summary: Delete a URL
+      tags:
+      - URLs
     get:
       description: Retrieves the details of a specific short URL owned by the user.
       parameters:
@@ -692,6 +733,48 @@ paths:
       - BearerAuth: []
       - ApiKeyAuth: []
       summary: Get URL details
+      tags:
+      - URLs
+    put:
+      consumes:
+      - application/json
+      description: Updates the properties of a specific short URL.
+      parameters:
+      - description: URL ID
+        format: uuid
+        in: path
+        name: url_id
+        required: true
+        type: string
+      - description: URL Update Information
+        in: body
+        name: url
+        required: true
+        schema:
+          $ref: '#/definitions/request.UpdateURLRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: URL updated successfully
+          schema:
+            $ref: '#/definitions/response.URLDetailsSuccessResponse'
+        "400":
+          description: Validation error
+          schema:
+            $ref: '#/definitions/response.APIErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.APIErrorResponse'
+        "404":
+          description: URL not found
+          schema:
+            $ref: '#/definitions/response.APIErrorResponse'
+      security:
+      - BearerAuth: []
+      - ApiKeyAuth: []
+      summary: Update a URL
       tags:
       - URLs
 securityDefinitions:

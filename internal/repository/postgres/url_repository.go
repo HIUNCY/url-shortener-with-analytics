@@ -75,5 +75,10 @@ func (r *urlRepository) FindAllByUserID(userID uuid.UUID, options *domain.FindAl
 	return urls, total, nil
 }
 
-func (r *urlRepository) Update(url *domain.URL) error { return nil }
-func (r *urlRepository) Delete(url *domain.URL) error { return nil }
+func (r *urlRepository) Update(url *domain.URL) error {
+	return r.db.Save(url).Error
+}
+
+func (r *urlRepository) Delete(url *domain.URL) error {
+	return r.db.Delete(url).Error
+}
