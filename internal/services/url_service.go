@@ -7,6 +7,7 @@ import (
 	"github.com/HIUNCY/url-shortener-with-analytics/configs"
 	"github.com/HIUNCY/url-shortener-with-analytics/internal/domain"
 	"github.com/HIUNCY/url-shortener-with-analytics/internal/dto/request"
+	"github.com/HIUNCY/url-shortener-with-analytics/internal/dto/response"
 	"github.com/HIUNCY/url-shortener-with-analytics/pkg/utils"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
@@ -18,9 +19,15 @@ type CreateURLResult struct {
 	ShortURL string
 }
 
+type URLListResult struct {
+	URLs       []domain.URL
+	Pagination response.PaginationResponse
+}
+
 type URLService interface {
 	CreateShortURL(userID uuid.UUID, req request.CreateURLRequest) (*CreateURLResult, error)
 	GetURLDetails(urlID, userID uuid.UUID) (*domain.URL, error)
+	GetUserURLs(userID uuid.UUID, options *domain.FindAllOptions) (*URLListResult, error)
 }
 
 type urlService struct {
@@ -91,6 +98,30 @@ func (s *urlService) CreateShortURL(userID uuid.UUID, req request.CreateURLReque
 		URL:      newURL,
 		QRCode:   qrCode,
 		ShortURL: shortURLString,
+	}, nil
+}
+
+func (s *urlService) GetUserURLs(userID uuid.UUID, options *domain.FindAllOptions) (*URLListResult, error) {
+	urls, total, err := s.urlRepo.FindAllByUserID(userID, options)
+	if err != nil {
+		return nil, err
+	}
+
+	totalPages := 0
+	if options.Limit > 0 {
+		totalPages = int((total + int64(options.Limit) - 1) / int64(options.Limit))
+	}
+
+	pagination := response.PaginationResponse{
+		Page:       (options.Offset / options.Limit) + 1,
+		Limit:      options.Limit,
+		Total:      total,
+		TotalPages: totalPages,
+	}
+
+	return &URLListResult{
+		URLs:       urls,
+		Pagination: pagination,
 	}, nil
 }
 

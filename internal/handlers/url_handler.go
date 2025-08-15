@@ -4,9 +4,11 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"strconv"
 	"time"
 
 	"github.com/HIUNCY/url-shortener-with-analytics/configs"
+	"github.com/HIUNCY/url-shortener-with-analytics/internal/domain"
 	"github.com/HIUNCY/url-shortener-with-analytics/internal/dto/request"
 	"github.com/HIUNCY/url-shortener-with-analytics/internal/dto/response"
 	"github.com/HIUNCY/url-shortener-with-analytics/internal/services"
@@ -60,6 +62,70 @@ func (h *URLHandler) CreateShortURL(c *gin.Context) {
 		Success:   true,
 		Message:   "Short URL created successfully",
 		Data:      response.ToCreateURLResponse(result.URL, result.ShortURL, result.QRCode),
+		Timestamp: time.Now().UTC(),
+	})
+}
+
+// GetUserURLs godoc
+// @Summary Get user's URLs
+// @Description Retrieves a paginated list of URLs for the authenticated user.
+// @Tags URLs
+// @Security BearerAuth
+// @Security ApiKeyAuth
+// @Produce  json
+// @Param page query int false "Page number" default(1)
+// @Param limit query int false "Items per page" default(10)
+// @Param search query string false "Search query for title or original URL"
+// @Param sort query string false "Sort by field (created_at, click_count, title)" Enums(created_at, click_count, title)
+// @Param order query string false "Sort order (asc, desc)" Enums(asc, desc)
+// @Success 200 {object} response.URLListSuccessResponse "List of URLs retrieved successfully"
+// @Failure 401 {object} response.APIErrorResponse "Unauthorized"
+// @Router /urls [get]
+func (h *URLHandler) GetUserURLs(c *gin.Context) {
+	userID := c.MustGet("userID").(uuid.UUID)
+
+	// Parsing query parameters dengan nilai default
+	page, _ := strconv.Atoi(c.DefaultQuery("page", "1"))
+	limit, _ := strconv.Atoi(c.DefaultQuery("limit", "10"))
+	offset := (page - 1) * limit
+
+	options := &domain.FindAllOptions{
+		Search: c.Query("search"),
+		SortBy: c.DefaultQuery("sort", "created_at"),
+		Order:  c.DefaultQuery("order", "desc"),
+		Limit:  limit,
+		Offset: offset,
+	}
+
+	result, err := h.urlService.GetUserURLs(userID, options)
+	if err != nil {
+		response.SendError(c, http.StatusInternalServerError, "INTERNAL_SERVER_ERROR", "Failed to retrieve URLs", nil)
+		return
+	}
+
+	// Mapping dari domain.URL ke DTO
+	urlResponses := make([]response.URLListItemResponse, len(result.URLs))
+	for i, url := range result.URLs {
+		shortURLString := fmt.Sprintf("%s/%s", "http://localhost:8080", url.ShortCode) // TODO: Ambil dari config
+		urlResponses[i] = response.URLListItemResponse{
+			ID:          url.ID,
+			OriginalURL: url.OriginalURL,
+			ShortCode:   url.ShortCode,
+			ShortURL:    shortURLString,
+			Title:       url.Title,
+			ClickCount:  url.ClickCount,
+			IsActive:    url.IsActive,
+			ExpiresAt:   url.ExpiresAt,
+			CreatedAt:   url.CreatedAt,
+		}
+	}
+
+	c.JSON(http.StatusOK, response.URLListSuccessResponse{
+		Success: true,
+		Data: response.URLListResponse{
+			URLs:       urlResponses,
+			Pagination: result.Pagination,
+		},
 		Timestamp: time.Now().UTC(),
 	})
 }

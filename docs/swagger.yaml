@@ -177,6 +177,17 @@ definitions:
       timestamp:
         type: string
     type: object
+  response.PaginationResponse:
+    properties:
+      limit:
+        type: integer
+      page:
+        type: integer
+      total:
+        type: integer
+      total_pages:
+        type: integer
+    type: object
   response.ProfileSuccessResponse:
     properties:
       data:
@@ -268,6 +279,46 @@ definitions:
     properties:
       data:
         $ref: '#/definitions/response.URLDetailsResponse'
+      success:
+        example: true
+        type: boolean
+      timestamp:
+        type: string
+    type: object
+  response.URLListItemResponse:
+    properties:
+      click_count:
+        type: integer
+      created_at:
+        type: string
+      expires_at:
+        type: string
+      id:
+        type: string
+      is_active:
+        type: boolean
+      original_url:
+        type: string
+      short_code:
+        type: string
+      short_url:
+        type: string
+      title:
+        type: string
+    type: object
+  response.URLListResponse:
+    properties:
+      pagination:
+        $ref: '#/definitions/response.PaginationResponse'
+      urls:
+        items:
+          $ref: '#/definitions/response.URLListItemResponse'
+        type: array
+    type: object
+  response.URLListSuccessResponse:
+    properties:
+      data:
+        $ref: '#/definitions/response.URLListResponse'
       success:
         example: true
         type: boolean
@@ -523,6 +574,55 @@ paths:
       tags:
       - Profile
   /urls:
+    get:
+      description: Retrieves a paginated list of URLs for the authenticated user.
+      parameters:
+      - default: 1
+        description: Page number
+        in: query
+        name: page
+        type: integer
+      - default: 10
+        description: Items per page
+        in: query
+        name: limit
+        type: integer
+      - description: Search query for title or original URL
+        in: query
+        name: search
+        type: string
+      - description: Sort by field (created_at, click_count, title)
+        enum:
+        - created_at
+        - click_count
+        - title
+        in: query
+        name: sort
+        type: string
+      - description: Sort order (asc, desc)
+        enum:
+        - asc
+        - desc
+        in: query
+        name: order
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: List of URLs retrieved successfully
+          schema:
+            $ref: '#/definitions/response.URLListSuccessResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.APIErrorResponse'
+      security:
+      - BearerAuth: []
+      - ApiKeyAuth: []
+      summary: Get user's URLs
+      tags:
+      - URLs
     post:
       consumes:
       - application/json

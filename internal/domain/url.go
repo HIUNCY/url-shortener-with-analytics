@@ -26,13 +26,21 @@ type URL struct {
 	LastClickedAt    *time.Time
 }
 
+type FindAllOptions struct {
+	Search string
+	SortBy string
+	Order  string
+	Limit  int
+	Offset int
+}
+
 // URLRepository mendefinisikan kontrak untuk interaksi data URL.
 type URLRepository interface {
 	Store(url *URL) error
 	FindByShortCode(shortCode string) (*URL, error)
 	FindByCustomAlias(customAlias string) (*URL, error)
 	FindByID(id uuid.UUID) (*URL, error)
-	FindAllByUserID(userID uuid.UUID) ([]URL, error)
+	FindAllByUserID(userID uuid.UUID, options *FindAllOptions) ([]URL, int64, error)
 	Update(url *URL) error
 	Delete(url *URL) error
 }

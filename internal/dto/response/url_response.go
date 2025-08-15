@@ -28,6 +28,36 @@ type CreateURLSuccessResponse struct {
 	Timestamp time.Time         `json:"timestamp"`
 }
 
+type URLListItemResponse struct {
+	ID          uuid.UUID  `json:"id"`
+	OriginalURL string     `json:"original_url"`
+	ShortCode   string     `json:"short_code"`
+	ShortURL    string     `json:"short_url"`
+	Title       *string    `json:"title,omitempty"`
+	ClickCount  int        `json:"click_count"`
+	IsActive    bool       `json:"is_active"`
+	ExpiresAt   *time.Time `json:"expires_at,omitempty"`
+	CreatedAt   time.Time  `json:"created_at"`
+}
+
+type PaginationResponse struct {
+	Page       int   `json:"page"`
+	Limit      int   `json:"limit"`
+	Total      int64 `json:"total"`
+	TotalPages int   `json:"total_pages"`
+}
+
+type URLListResponse struct {
+	URLs       []URLListItemResponse `json:"urls"`
+	Pagination PaginationResponse    `json:"pagination"`
+}
+
+type URLListSuccessResponse struct {
+	Success   bool            `json:"success" example:"true"`
+	Data      URLListResponse `json:"data"`
+	Timestamp time.Time       `json:"timestamp"`
+}
+
 type URLDetailsResponse struct {
 	ID                  uuid.UUID  `json:"id"`
 	OriginalURL         string     `json:"original_url"`
