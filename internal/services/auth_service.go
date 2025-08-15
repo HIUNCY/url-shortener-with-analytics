@@ -2,7 +2,9 @@ package services
 
 import (
 	"errors"
+	"time"
 
+	"github.com/HIUNCY/url-shortener-with-analytics/configs"
 	"github.com/HIUNCY/url-shortener-with-analytics/internal/domain"
 	"github.com/HIUNCY/url-shortener-with-analytics/internal/dto/request"
 	"github.com/HIUNCY/url-shortener-with-analytics/pkg/utils"
@@ -11,15 +13,17 @@ import (
 
 type AuthService interface {
 	Register(req request.RegisterRequest) (*domain.User, error)
+	Login(req request.LoginRequest) (*domain.User, string, error)
 }
 
 type authService struct {
 	userRepo domain.UserRepository
+	cfg      configs.Config
 }
 
 // NewAuthService membuat instance baru dari authService.
-func NewAuthService(userRepo domain.UserRepository) AuthService {
-	return &authService{userRepo: userRepo}
+func NewAuthService(userRepo domain.UserRepository, cfg configs.Config) AuthService {
+	return &authService{userRepo: userRepo, cfg: cfg}
 }
 
 func (s *authService) Register(req request.RegisterRequest) (*domain.User, error) {
@@ -62,4 +66,32 @@ func (s *authService) Register(req request.RegisterRequest) (*domain.User, error
 	}
 
 	return newUser, nil
+}
+
+func (s *authService) Login(req request.LoginRequest) (*domain.User, string, error) {
+	// 1. Cari user berdasarkan email
+	user, err := s.userRepo.FindByEmail(req.Email)
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, "", errors.New("AUTH_INVALID_CREDENTIALS")
+		}
+		return nil, "", err
+	}
+
+	// 2. Verifikasi password
+	if !utils.CheckPasswordHash(req.Password, user.PasswordHash) {
+		return nil, "", errors.New("AUTH_INVALID_CREDENTIALS")
+	}
+
+	// 3. Generate JWT
+	expiresIn, err := time.ParseDuration(s.cfg.JWT.ExpiresIn)
+	if err != nil {
+		return nil, "", err // Handle error parsing durasi
+	}
+	token, err := utils.GenerateToken(user.ID, s.cfg.JWT.SecretKey, expiresIn)
+	if err != nil {
+		return nil, "", err
+	}
+
+	return user, token, nil
 }

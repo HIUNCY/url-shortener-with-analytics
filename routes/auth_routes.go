@@ -10,6 +10,6 @@ func SetupAuthRoutes(router *gin.RouterGroup, authHandler *handlers.AuthHandler)
 	authGroup := router.Group("/auth")
 	{
 		authGroup.POST("/register", authHandler.Register)
-		// Rute lain (login, dll) akan ditambahkan di sini.
+		authGroup.POST("/login", authHandler.Login)
 	}
 }

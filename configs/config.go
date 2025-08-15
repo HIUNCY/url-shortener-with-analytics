@@ -4,10 +4,16 @@ import (
 	"github.com/spf13/viper"
 )
 
+type JWTConfig struct {
+	SecretKey string `mapstructure:"secretkey"`
+	ExpiresIn string `mapstructure:"expiresin"`
+}
+
 // Config menampung semua konfigurasi untuk aplikasi.
 type Config struct {
 	Server   ServerConfig   `mapstructure:"server"`
 	Database DatabaseConfig `mapstructure:"database"`
+	JWT      JWTConfig      `mapstructure:"jwt"`
 }
 
 // ServerConfig menampung semua konfigurasi untuk server.

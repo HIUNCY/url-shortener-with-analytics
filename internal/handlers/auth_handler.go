@@ -57,3 +57,43 @@ func (h *AuthHandler) Register(c *gin.Context) {
 		Timestamp: time.Now().UTC(),
 	})
 }
+
+// Login godoc
+// @Summary Log in a user
+// @Description Authenticates a user and returns an access token.
+// @Tags Authentication
+// @Accept  json
+// @Produce  json
+// @Param   credentials body request.LoginRequest true "User Login Credentials"
+// @Success 200 {object} response.LoginSuccessResponse "Login successful"
+// @Failure 400 {object} response.APIErrorResponse "Validation error"
+// @Failure 401 {object} response.APIErrorResponse "Invalid credentials"
+// @Failure 500 {object} response.APIErrorResponse "Internal server error"
+// @Router /auth/login [post]
+func (h *AuthHandler) Login(c *gin.Context) {
+	var req request.LoginRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		response.SendError(c, http.StatusBadRequest, "VALIDATION_ERROR", err.Error(), nil)
+		return
+	}
+
+	user, token, err := h.authService.Login(req)
+	if err != nil {
+		if err.Error() == "AUTH_INVALID_CREDENTIALS" {
+			response.SendError(c, http.StatusUnauthorized, "INVALID_CREDENTIALS", "Invalid email or password", nil)
+			return
+		}
+		response.SendError(c, http.StatusInternalServerError, "INTERNAL_SERVER_ERROR", "Failed to login user", nil)
+		return
+	}
+
+	c.JSON(http.StatusOK, response.LoginSuccessResponse{
+		Success: true,
+		Message: "Login successful",
+		Data: response.LoginResponse{
+			AccessToken: token,
+			User:        response.ToUserResponse(user),
+		},
+		Timestamp: time.Now().UTC(),
+	})
+}
