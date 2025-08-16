@@ -48,15 +48,20 @@ func main() {
 	// 3. Inisialisasi semua komponen (Dependency Injection)
 	userRepository := postgres.NewUserRepository(db)
 	urlRepository := postgres.NewURLRepository(db)
+	clickRepository := postgres.NewClickRepository(db)
 	authService := services.NewAuthService(userRepository, config)
 	userService := services.NewUserService(userRepository)
 	urlService := services.NewURLService(urlRepository, config)
+	redirectService := services.NewRedirectService(urlRepository, clickRepository)
 	authHandler := handlers.NewAuthHandler(authService, config)
 	profileHandler := handlers.NewProfileHandler(userService)
 	urlHandler := handlers.NewURLHandler(urlService, config)
+	redirectHandler := handlers.NewRedirectHandler(redirectService)
 
 	// 4. Setup Gin Router
 	router := gin.Default()
+
+	router.GET("/:shortCode", redirectHandler.Redirect)
 
 	// Route untuk Swagger UI
 	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))

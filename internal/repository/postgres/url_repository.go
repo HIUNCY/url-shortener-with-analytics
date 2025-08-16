@@ -3,6 +3,7 @@ package postgres
 import (
 	"fmt"
 	"strings"
+	"time"
 
 	"github.com/HIUNCY/url-shortener-with-analytics/internal/domain"
 	"github.com/google/uuid"
@@ -81,4 +82,11 @@ func (r *urlRepository) Update(url *domain.URL) error {
 
 func (r *urlRepository) Delete(url *domain.URL) error {
 	return r.db.Delete(url).Error
+}
+
+func (r *urlRepository) IncrementClickCount(urlID uuid.UUID) error {
+	return r.db.Model(&domain.URL{}).Where("id = ?", urlID).Updates(map[string]interface{}{
+		"click_count":     gorm.Expr("click_count + 1"),
+		"last_clicked_at": time.Now(),
+	}).Error
 }

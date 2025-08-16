@@ -43,4 +43,5 @@ type URLRepository interface {
 	FindAllByUserID(userID uuid.UUID, options *FindAllOptions) ([]URL, int64, error)
 	Update(url *URL) error
 	Delete(url *URL) error
+	IncrementClickCount(urlID uuid.UUID) error
 }
