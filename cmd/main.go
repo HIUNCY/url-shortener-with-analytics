@@ -56,13 +56,14 @@ func main() {
 	authHandler := handlers.NewAuthHandler(authService, config)
 	profileHandler := handlers.NewProfileHandler(userService)
 	urlHandler := handlers.NewURLHandler(urlService, config)
-	redirectHandler := handlers.NewRedirectHandler(redirectService)
+	redirectHandler := handlers.NewRedirectHandler(redirectService, config)
 
 	// 4. Setup Gin Router
 	router := gin.Default()
 
 	router.GET("/:shortCode", redirectHandler.Redirect)
 	router.POST("/:shortCode/unlock", redirectHandler.UnlockURL)
+	router.GET("/:shortCode/info", redirectHandler.GetURLInfo)
 
 	// Route untuk Swagger UI
 	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))

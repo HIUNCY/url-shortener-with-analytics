@@ -671,6 +671,41 @@ const docTemplate = `{
                 }
             }
         },
+        "/{shortCode}/info": {
+            "get": {
+                "description": "Retrieves public information about a short URL before redirecting.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Redirection"
+                ],
+                "summary": "Get URL info (Preview)",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Short Code",
+                        "name": "shortCode",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "URL info retrieved successfully",
+                        "schema": {
+                            "$ref": "#/definitions/response.URLInfoSuccessResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "URL not found",
+                        "schema": {
+                            "$ref": "#/definitions/response.APIErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/{shortCode}/unlock": {
             "post": {
                 "description": "Verifies the password for a short URL and returns the original URL.",
@@ -1178,6 +1213,50 @@ const docTemplate = `{
             "properties": {
                 "data": {
                     "$ref": "#/definitions/response.URLDetailsResponse"
+                },
+                "success": {
+                    "type": "boolean",
+                    "example": true
+                },
+                "timestamp": {
+                    "type": "string"
+                }
+            }
+        },
+        "response.URLInfoResponse": {
+            "type": "object",
+            "properties": {
+                "click_count": {
+                    "type": "integer"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "domain": {
+                    "type": "string"
+                },
+                "is_safe": {
+                    "type": "boolean"
+                },
+                "original_url": {
+                    "type": "string"
+                },
+                "short_url": {
+                    "type": "string"
+                },
+                "title": {
+                    "type": "string"
+                }
+            }
+        },
+        "response.URLInfoSuccessResponse": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "$ref": "#/definitions/response.URLInfoResponse"
                 },
                 "success": {
                     "type": "boolean",

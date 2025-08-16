@@ -17,9 +17,16 @@ type UnlockResult struct {
 	AccessToken string
 }
 
+type InfoResult struct {
+	URL    *domain.URL
+	Domain string
+	IsSafe bool
+}
+
 type RedirectService interface {
 	ProcessRedirect(c *gin.Context, shortCode string) (string, error)
 	UnlockURL(shortCode, password string) (*UnlockResult, error)
+	GetURLInfo(shortCode string) (*InfoResult, error)
 }
 
 type redirectService struct {
@@ -106,5 +113,35 @@ func (s *redirectService) UnlockURL(shortCode, password string) (*UnlockResult, 
 	return &UnlockResult{
 		RedirectURL: url.OriginalURL,
 		AccessToken: tempToken,
+	}, nil
+}
+
+func (s *redirectService) GetURLInfo(shortCode string) (*InfoResult, error) {
+	// 1. Cari URL berdasarkan shortCode
+	url, err := s.urlRepo.FindByShortCode(shortCode)
+	if err != nil {
+		return nil, errors.New("URL_NOT_FOUND")
+	}
+
+	// 2. Periksa status URL (aktif & tidak kedaluwarsa)
+	if !url.IsActive || (url.ExpiresAt != nil && url.ExpiresAt.Before(time.Now())) {
+		return nil, errors.New("URL_NOT_FOUND")
+	}
+
+	// 3. Ekstrak domain dari URL asli
+	domainName, err := utils.GetDomainFromURL(url.OriginalURL)
+	if err != nil {
+		// Jika URL asli tidak valid, anggap domainnya kosong
+		domainName = ""
+	}
+
+	// 4. Lakukan pengecekan keamanan (simulasi)
+	// TODO: Integrasikan dengan Google Safe Browsing API atau sejenisnya di sini.
+	isSafe := true
+
+	return &InfoResult{
+		URL:    url,
+		Domain: domainName,
+		IsSafe: isSafe,
 	}, nil
 }

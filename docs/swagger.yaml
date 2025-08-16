@@ -303,6 +303,35 @@ definitions:
       timestamp:
         type: string
     type: object
+  response.URLInfoResponse:
+    properties:
+      click_count:
+        type: integer
+      created_at:
+        type: string
+      description:
+        type: string
+      domain:
+        type: string
+      is_safe:
+        type: boolean
+      original_url:
+        type: string
+      short_url:
+        type: string
+      title:
+        type: string
+    type: object
+  response.URLInfoSuccessResponse:
+    properties:
+      data:
+        $ref: '#/definitions/response.URLInfoResponse'
+      success:
+        example: true
+        type: boolean
+      timestamp:
+        type: string
+    type: object
   response.URLListItemResponse:
     properties:
       click_count:
@@ -390,6 +419,29 @@ info:
   title: URL Shortener API
   version: "1.0"
 paths:
+  /{shortCode}/info:
+    get:
+      description: Retrieves public information about a short URL before redirecting.
+      parameters:
+      - description: Short Code
+        in: path
+        name: shortCode
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: URL info retrieved successfully
+          schema:
+            $ref: '#/definitions/response.URLInfoSuccessResponse'
+        "404":
+          description: URL not found
+          schema:
+            $ref: '#/definitions/response.APIErrorResponse'
+      summary: Get URL info (Preview)
+      tags:
+      - Redirection
   /{shortCode}/unlock:
     post:
       consumes:

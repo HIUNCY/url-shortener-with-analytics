@@ -106,7 +106,7 @@ func (h *URLHandler) GetUserURLs(c *gin.Context) {
 	// Mapping dari domain.URL ke DTO
 	urlResponses := make([]response.URLListItemResponse, len(result.URLs))
 	for i, url := range result.URLs {
-		shortURLString := fmt.Sprintf("%s/%s", "http://localhost:8080", url.ShortCode) // TODO: Ambil dari config
+		shortURLString := fmt.Sprintf("%s/%s", h.cfg.Server.BaseURL, url.ShortCode)
 		urlResponses[i] = response.URLListItemResponse{
 			ID:          url.ID,
 			OriginalURL: url.OriginalURL,
@@ -222,7 +222,7 @@ func (h *URLHandler) UpdateURL(c *gin.Context) {
 		return
 	}
 
-	shortURLString := fmt.Sprintf("%s/%s", "http://localhost:8080", updatedURL.ShortCode) // TODO: Ambil dari config
+	shortURLString := fmt.Sprintf("%s/%s", h.cfg.Server.BaseURL, updatedURL.ShortCode)
 	c.JSON(http.StatusOK, response.URLDetailsSuccessResponse{
 		Success:   true,
 		Data:      response.ToURLDetailsResponse(updatedURL, shortURLString),

@@ -1,9 +1,11 @@
 package handlers
 
 import (
+	"fmt"
 	"net/http"
 	"time"
 
+	"github.com/HIUNCY/url-shortener-with-analytics/configs"
 	"github.com/HIUNCY/url-shortener-with-analytics/internal/dto/request"
 	"github.com/HIUNCY/url-shortener-with-analytics/internal/dto/response"
 	"github.com/HIUNCY/url-shortener-with-analytics/internal/services"
@@ -12,10 +14,11 @@ import (
 
 type RedirectHandler struct {
 	redirectService services.RedirectService
+	cfg             configs.Config
 }
 
-func NewRedirectHandler(redirectService services.RedirectService) *RedirectHandler {
-	return &RedirectHandler{redirectService: redirectService}
+func NewRedirectHandler(redirectService services.RedirectService, cfg configs.Config) *RedirectHandler {
+	return &RedirectHandler{redirectService: redirectService, cfg: cfg}
 }
 
 // Redirect menangani request ke short URL
@@ -76,6 +79,43 @@ func (h *RedirectHandler) UnlockURL(c *gin.Context) {
 		Data: response.UnlockURLResponse{
 			RedirectURL: result.RedirectURL,
 			AccessToken: result.AccessToken,
+		},
+		Timestamp: time.Now().UTC(),
+	})
+}
+
+// GetURLInfo godoc
+// @Summary Get URL info (Preview)
+// @Description Retrieves public information about a short URL before redirecting.
+// @Tags Redirection
+// @Produce  json
+// @Param    shortCode path string true "Short Code"
+// @Success 200 {object} response.URLInfoSuccessResponse "URL info retrieved successfully"
+// @Failure 404 {object} response.APIErrorResponse "URL not found"
+// @Router /{shortCode}/info [get]
+func (h *RedirectHandler) GetURLInfo(c *gin.Context) {
+	shortCode := c.Param("shortCode")
+
+	result, err := h.redirectService.GetURLInfo(shortCode)
+	if err != nil {
+		response.SendError(c, http.StatusNotFound, "NOT_FOUND", "URL not found or has expired", nil)
+		return
+	}
+
+	// TODO: Ambil Base URL dari config
+	shortURLString := fmt.Sprintf("%s/%s", h.cfg.Server.BaseURL, result.URL.ShortCode)
+
+	c.JSON(http.StatusOK, response.URLInfoSuccessResponse{
+		Success: true,
+		Data: response.URLInfoResponse{
+			OriginalURL: result.URL.OriginalURL,
+			ShortURL:    shortURLString,
+			Title:       result.URL.Title,
+			Description: result.URL.Description,
+			ClickCount:  result.URL.ClickCount,
+			CreatedAt:   result.URL.CreatedAt,
+			IsSafe:      result.IsSafe,
+			Domain:      result.Domain,
 		},
 		Timestamp: time.Now().UTC(),
 	})
