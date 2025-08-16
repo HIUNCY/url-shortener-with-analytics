@@ -5,22 +5,31 @@ import (
 	"log"
 	"time"
 
+	"github.com/HIUNCY/url-shortener-with-analytics/configs"
 	"github.com/HIUNCY/url-shortener-with-analytics/internal/domain"
+	"github.com/HIUNCY/url-shortener-with-analytics/pkg/utils"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 )
 
+type UnlockResult struct {
+	RedirectURL string
+	AccessToken string
+}
+
 type RedirectService interface {
 	ProcessRedirect(c *gin.Context, shortCode string) (string, error)
+	UnlockURL(shortCode, password string) (*UnlockResult, error)
 }
 
 type redirectService struct {
 	urlRepo   domain.URLRepository
 	clickRepo domain.ClickRepository
+	cfg       configs.Config
 }
 
-func NewRedirectService(urlRepo domain.URLRepository, clickRepo domain.ClickRepository) RedirectService {
-	return &redirectService{urlRepo: urlRepo, clickRepo: clickRepo}
+func NewRedirectService(urlRepo domain.URLRepository, clickRepo domain.ClickRepository, cfg configs.Config) RedirectService {
+	return &redirectService{urlRepo: urlRepo, clickRepo: clickRepo, cfg: cfg}
 }
 
 func (s *redirectService) ProcessRedirect(c *gin.Context, shortCode string) (string, error) {
@@ -67,4 +76,35 @@ func (s *redirectService) trackClick(c *gin.Context, urlID uuid.UUID) {
 	if err := s.clickRepo.Store(newClick); err != nil {
 		log.Printf("Error storing click details for URL %s: %v", urlID, err)
 	}
+}
+
+func (s *redirectService) UnlockURL(shortCode, password string) (*UnlockResult, error) {
+	// 1. Cari URL
+	url, err := s.urlRepo.FindByShortCode(shortCode)
+	if err != nil {
+		return nil, errors.New("URL_NOT_FOUND")
+	}
+
+	// 2. Cek apakah URL punya password
+	if url.PasswordHash == nil {
+		return nil, errors.New("URL_NOT_PROTECTED")
+	}
+
+	// 3. Verifikasi password
+	if !utils.CheckPasswordHash(password, *url.PasswordHash) {
+		return nil, errors.New("URL_INVALID_PASSWORD")
+	}
+
+	// 4. Buat token redirect sementara (berlaku 1 menit)
+	// Kita bisa gunakan kembali user ID dari URL, atau ID URL itu sendiri sebagai subjek.
+	// Di sini kita gunakan ID URL untuk membuatnya spesifik.
+	tempToken, err := utils.GenerateToken(url.ID, s.cfg.JWT.SecretKey, 1*time.Minute)
+	if err != nil {
+		return nil, err
+	}
+
+	return &UnlockResult{
+		RedirectURL: url.OriginalURL,
+		AccessToken: tempToken,
+	}, nil
 }

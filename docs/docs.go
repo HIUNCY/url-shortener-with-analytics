@@ -670,6 +670,65 @@ const docTemplate = `{
                     }
                 }
             }
+        },
+        "/{shortCode}/unlock": {
+            "post": {
+                "description": "Verifies the password for a short URL and returns the original URL.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Redirection"
+                ],
+                "summary": "Unlock a password-protected URL",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Short Code",
+                        "name": "shortCode",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Password",
+                        "name": "password",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.UnlockURLRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "URL unlocked successfully",
+                        "schema": {
+                            "$ref": "#/definitions/response.UnlockURLSuccessResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Validation error",
+                        "schema": {
+                            "$ref": "#/definitions/response.APIErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Invalid password",
+                        "schema": {
+                            "$ref": "#/definitions/response.APIErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "URL not found",
+                        "schema": {
+                            "$ref": "#/definitions/response.APIErrorResponse"
+                        }
+                    }
+                }
+            }
         }
     },
     "definitions": {
@@ -762,6 +821,17 @@ const docTemplate = `{
                 "password": {
                     "type": "string",
                     "minLength": 8
+                }
+            }
+        },
+        "request.UnlockURLRequest": {
+            "type": "object",
+            "required": [
+                "password"
+            ],
+            "properties": {
+                "password": {
+                    "type": "string"
                 }
             }
         },
@@ -1169,6 +1239,32 @@ const docTemplate = `{
             "properties": {
                 "data": {
                     "$ref": "#/definitions/response.URLListResponse"
+                },
+                "success": {
+                    "type": "boolean",
+                    "example": true
+                },
+                "timestamp": {
+                    "type": "string"
+                }
+            }
+        },
+        "response.UnlockURLResponse": {
+            "type": "object",
+            "properties": {
+                "access_token": {
+                    "type": "string"
+                },
+                "redirect_url": {
+                    "type": "string"
+                }
+            }
+        },
+        "response.UnlockURLSuccessResponse": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "$ref": "#/definitions/response.UnlockURLResponse"
                 },
                 "success": {
                     "type": "boolean",

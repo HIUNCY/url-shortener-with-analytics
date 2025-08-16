@@ -52,7 +52,7 @@ func main() {
 	authService := services.NewAuthService(userRepository, config)
 	userService := services.NewUserService(userRepository)
 	urlService := services.NewURLService(urlRepository, config)
-	redirectService := services.NewRedirectService(urlRepository, clickRepository)
+	redirectService := services.NewRedirectService(urlRepository, clickRepository, config)
 	authHandler := handlers.NewAuthHandler(authService, config)
 	profileHandler := handlers.NewProfileHandler(userService)
 	urlHandler := handlers.NewURLHandler(urlService, config)
@@ -62,6 +62,7 @@ func main() {
 	router := gin.Default()
 
 	router.GET("/:shortCode", redirectHandler.Redirect)
+	router.POST("/:shortCode/unlock", redirectHandler.UnlockURL)
 
 	// Route untuk Swagger UI
 	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))

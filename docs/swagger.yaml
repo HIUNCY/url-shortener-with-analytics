@@ -62,6 +62,13 @@ definitions:
     - last_name
     - password
     type: object
+  request.UnlockURLRequest:
+    properties:
+      password:
+        type: string
+    required:
+    - password
+    type: object
   request.UpdateProfileRequest:
     properties:
       first_name:
@@ -336,6 +343,23 @@ definitions:
       timestamp:
         type: string
     type: object
+  response.UnlockURLResponse:
+    properties:
+      access_token:
+        type: string
+      redirect_url:
+        type: string
+    type: object
+  response.UnlockURLSuccessResponse:
+    properties:
+      data:
+        $ref: '#/definitions/response.UnlockURLResponse'
+      success:
+        example: true
+        type: boolean
+      timestamp:
+        type: string
+    type: object
   response.UserResponse:
     properties:
       api_key:
@@ -366,6 +390,46 @@ info:
   title: URL Shortener API
   version: "1.0"
 paths:
+  /{shortCode}/unlock:
+    post:
+      consumes:
+      - application/json
+      description: Verifies the password for a short URL and returns the original
+        URL.
+      parameters:
+      - description: Short Code
+        in: path
+        name: shortCode
+        required: true
+        type: string
+      - description: Password
+        in: body
+        name: password
+        required: true
+        schema:
+          $ref: '#/definitions/request.UnlockURLRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: URL unlocked successfully
+          schema:
+            $ref: '#/definitions/response.UnlockURLSuccessResponse'
+        "400":
+          description: Validation error
+          schema:
+            $ref: '#/definitions/response.APIErrorResponse'
+        "401":
+          description: Invalid password
+          schema:
+            $ref: '#/definitions/response.APIErrorResponse'
+        "404":
+          description: URL not found
+          schema:
+            $ref: '#/definitions/response.APIErrorResponse'
+      summary: Unlock a password-protected URL
+      tags:
+      - Redirection
   /auth/login:
     post:
       consumes:
