@@ -16,6 +16,7 @@ type Config struct {
 	Server   ServerConfig   `mapstructure:"server"`
 	Database DatabaseConfig `mapstructure:"database"`
 	JWT      JWTConfig      `mapstructure:"jwt"`
+	GeoIP    GeoIPConfig    `mapstructure:"geoip"`
 }
 
 // ServerConfig menampung semua konfigurasi untuk server.
@@ -34,6 +35,10 @@ type DatabaseConfig struct {
 	DBName         string `mapstructure:"dbname"`
 	SSLMode        string `mapstructure:"sslmode"`
 	ChannelBinding string `mapstructure:"channelbinding"`
+}
+
+type GeoIPConfig struct {
+	DBPath string `mapstructure:"dbpath"`
 }
 
 // LoadConfig membaca konfigurasi dari file .env.

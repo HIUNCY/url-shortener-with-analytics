@@ -10,6 +10,7 @@ import (
 	"github.com/HIUNCY/url-shortener-with-analytics/internal/repository/postgres"
 	"github.com/HIUNCY/url-shortener-with-analytics/internal/services"
 	"github.com/HIUNCY/url-shortener-with-analytics/pkg/database"
+	"github.com/HIUNCY/url-shortener-with-analytics/pkg/geoip"
 	"github.com/HIUNCY/url-shortener-with-analytics/routes"
 	"github.com/gin-gonic/gin"
 	swaggerFiles "github.com/swaggo/files"
@@ -52,7 +53,8 @@ func main() {
 	authService := services.NewAuthService(userRepository, config)
 	userService := services.NewUserService(userRepository)
 	urlService := services.NewURLService(urlRepository, config)
-	redirectService := services.NewRedirectService(urlRepository, clickRepository, config)
+	geoipService := geoip.NewGeoIPService(config.GeoIP)
+	redirectService := services.NewRedirectService(urlRepository, clickRepository, geoipService, config)
 	authHandler := handlers.NewAuthHandler(authService, config)
 	profileHandler := handlers.NewProfileHandler(userService)
 	urlHandler := handlers.NewURLHandler(urlService, config)

@@ -7,6 +7,7 @@ import (
 
 	"github.com/HIUNCY/url-shortener-with-analytics/configs"
 	"github.com/HIUNCY/url-shortener-with-analytics/internal/domain"
+	"github.com/HIUNCY/url-shortener-with-analytics/pkg/geoip"
 	"github.com/HIUNCY/url-shortener-with-analytics/pkg/utils"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
@@ -32,11 +33,12 @@ type RedirectService interface {
 type redirectService struct {
 	urlRepo   domain.URLRepository
 	clickRepo domain.ClickRepository
+	geoipSvc  geoip.GeoIPService
 	cfg       configs.Config
 }
 
-func NewRedirectService(urlRepo domain.URLRepository, clickRepo domain.ClickRepository, cfg configs.Config) RedirectService {
-	return &redirectService{urlRepo: urlRepo, clickRepo: clickRepo, cfg: cfg}
+func NewRedirectService(urlRepo domain.URLRepository, clickRepo domain.ClickRepository, geoipSvc geoip.GeoIPService, cfg configs.Config) RedirectService {
+	return &redirectService{urlRepo: urlRepo, clickRepo: clickRepo, geoipSvc: geoipSvc, cfg: cfg}
 }
 
 func (s *redirectService) ProcessRedirect(c *gin.Context, shortCode string) (string, error) {
@@ -72,13 +74,27 @@ func (s *redirectService) trackClick(c *gin.Context, urlID uuid.UUID) {
 		log.Printf("Error incrementing click count for URL %s: %v", urlID, err)
 	}
 
+	uaString := c.Request.UserAgent()
+	parsedUA := utils.ParseUserAgent(uaString)
+	clientIP := c.ClientIP()
+
+	location, err := s.geoipSvc.Lookup(clientIP)
+	if err != nil {
+		log.Printf("Could not perform GeoIP lookup for IP %s: %v", clientIP, err)
+	}
+
 	// Simpan detail klik di tabel clicks
 	newClick := &domain.Click{
 		URLID:      urlID,
-		IPAddress:  c.ClientIP(),
-		UserAgent:  c.Request.UserAgent(),
+		IPAddress:  clientIP,
+		UserAgent:  uaString,
 		Referer:    c.Request.Referer(),
-		DeviceType: "unknown",
+		DeviceType: parsedUA.DeviceType,
+		Browser:    parsedUA.BrowserName,
+		OS:         parsedUA.OSName,
+		Country:    location.Country,
+		Region:     location.Region,
+		City:       location.City,
 	}
 	if err := s.clickRepo.Store(newClick); err != nil {
 		log.Printf("Error storing click details for URL %s: %v", urlID, err)
