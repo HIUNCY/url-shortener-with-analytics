@@ -1,6 +1,10 @@
 package response
 
-import "time"
+import (
+	"time"
+
+	"github.com/google/uuid"
+)
 
 // TimeSeriesStat adalah statistik untuk data berbasis waktu.
 type TimeSeriesStat struct {
@@ -37,4 +41,36 @@ type URLAnalyticsSuccessResponse struct {
 	Success   bool                 `json:"success" example:"true"`
 	Data      URLAnalyticsResponse `json:"data"`
 	Timestamp time.Time            `json:"timestamp"`
+}
+
+type DashboardSummary struct {
+	TotalURLs   int64 `json:"total_urls"`
+	TotalClicks int64 `json:"total_clicks"`
+	ActiveURLs  int64 `json:"active_urls"`
+}
+
+type DashboardActivityItem struct {
+	URLID         uuid.UUID  `json:"url_id"`
+	ShortCode     string     `json:"short_code"`
+	Title         *string    `json:"title,omitempty"`
+	LastClickedAt *time.Time `json:"last_clicked_at,omitempty"`
+}
+
+type DashboardTopURL struct {
+	URLID      uuid.UUID `json:"url_id"`
+	ShortCode  string    `json:"short_code"`
+	Title      *string   `json:"title,omitempty"`
+	ClickCount int       `json:"click_count"`
+}
+
+type UserDashboardResponse struct {
+	Summary           DashboardSummary        `json:"summary"`
+	RecentActivity    []DashboardActivityItem `json:"recent_activity"`
+	TopPerformingURLs []DashboardTopURL       `json:"top_performing_urls"`
+}
+
+type UserDashboardSuccessResponse struct {
+	Success   bool                  `json:"success" example:"true"`
+	Data      UserDashboardResponse `json:"data"`
+	Timestamp time.Time             `json:"timestamp"`
 }

@@ -90,3 +90,30 @@ func (r *urlRepository) IncrementClickCount(urlID uuid.UUID) error {
 		"last_clicked_at": time.Now(),
 	}).Error
 }
+
+func (r *urlRepository) GetDashboardSummary(userID uuid.UUID) (*domain.DashboardSummaryResult, error) {
+	var result domain.DashboardSummaryResult
+	err := r.db.Model(&domain.URL{}).
+		Select("COUNT(*) as total_urls, COALESCE(SUM(click_count), 0) as total_clicks, COUNT(CASE WHEN is_active = true AND (expires_at IS NULL OR expires_at > NOW()) THEN 1 END) as active_urls").
+		Where("user_id = ?", userID).
+		Scan(&result).Error
+	return &result, err
+}
+
+func (r *urlRepository) GetTopPerformingURLs(userID uuid.UUID, limit int) ([]domain.URL, error) {
+	var urls []domain.URL
+	err := r.db.Where("user_id = ?", userID).
+		Order("click_count DESC").
+		Limit(limit).
+		Find(&urls).Error
+	return urls, err
+}
+
+func (r *urlRepository) GetRecentActivity(userID uuid.UUID, limit int) ([]domain.URL, error) {
+	var urls []domain.URL
+	err := r.db.Where("user_id = ? AND last_clicked_at IS NOT NULL", userID).
+		Order("last_clicked_at DESC").
+		Limit(limit).
+		Find(&urls).Error
+	return urls, err
+}

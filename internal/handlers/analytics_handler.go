@@ -48,3 +48,28 @@ func (h *AnalyticsHandler) GetURLAnalytics(c *gin.Context) {
 		Timestamp: time.Now().UTC(),
 	})
 }
+
+// GetUserDashboard godoc
+// @Summary Get user dashboard analytics
+// @Description Retrieves summary analytics for the authenticated user's dashboard.
+// @Tags Analytics
+// @Security BearerAuth
+// @Produce  json
+// @Success 200 {object} response.UserDashboardSuccessResponse
+// @Failure 401 {object} response.APIErrorResponse "Unauthorized"
+// @Router /analytics/dashboard [get]
+func (h *AnalyticsHandler) GetUserDashboard(c *gin.Context) {
+	userID := c.MustGet("userID").(uuid.UUID)
+
+	dashboardData, err := h.analyticsService.GetUserDashboard(userID)
+	if err != nil {
+		response.SendError(c, http.StatusInternalServerError, "INTERNAL_SERVER_ERROR", "Failed to retrieve dashboard data", nil)
+		return
+	}
+
+	c.JSON(http.StatusOK, response.UserDashboardSuccessResponse{
+		Success:   true,
+		Data:      *dashboardData,
+		Timestamp: time.Now().UTC(),
+	})
+}

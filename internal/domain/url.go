@@ -34,6 +34,12 @@ type FindAllOptions struct {
 	Offset int
 }
 
+type DashboardSummaryResult struct {
+	TotalURLs   int64
+	TotalClicks int64
+	ActiveURLs  int64
+}
+
 // URLRepository mendefinisikan kontrak untuk interaksi data URL.
 type URLRepository interface {
 	Store(url *URL) error
@@ -44,4 +50,7 @@ type URLRepository interface {
 	Update(url *URL) error
 	Delete(url *URL) error
 	IncrementClickCount(urlID uuid.UUID) error
+	GetDashboardSummary(userID uuid.UUID) (*DashboardSummaryResult, error)
+	GetTopPerformingURLs(userID uuid.UUID, limit int) ([]URL, error)
+	GetRecentActivity(userID uuid.UUID, limit int) ([]URL, error)
 }

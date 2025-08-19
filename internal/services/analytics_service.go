@@ -12,6 +12,7 @@ import (
 
 type AnalyticsService interface {
 	GetURLAnalytics(urlID, userID uuid.UUID, period string) (*response.URLAnalyticsResponse, error)
+	GetUserDashboard(userID uuid.UUID) (*response.UserDashboardResponse, error)
 }
 
 type analyticsService struct {
@@ -114,4 +115,46 @@ func mapGrouped(res []domain.GroupedResult) []response.GroupedStat {
 		stats[i] = response.GroupedStat{Value: r.Value, Count: r.Count}
 	}
 	return stats
+}
+
+func (s *analyticsService) GetUserDashboard(userID uuid.UUID) (*response.UserDashboardResponse, error) {
+	var wg sync.WaitGroup
+	dashboardData := &response.UserDashboardResponse{}
+
+	// Panggil semua query secara paralel
+	wg.Add(3)
+
+	go func() {
+		defer wg.Done()
+		summary, _ := s.urlRepo.GetDashboardSummary(userID)
+		if summary != nil {
+			dashboardData.Summary = response.DashboardSummary(*summary)
+		}
+	}()
+
+	go func() {
+		defer wg.Done()
+		topURLs, _ := s.urlRepo.GetTopPerformingURLs(userID, 5)
+		dashboardData.TopPerformingURLs = make([]response.DashboardTopURL, len(topURLs))
+		for i, u := range topURLs {
+			dashboardData.TopPerformingURLs[i] = response.DashboardTopURL{
+				URLID: u.ID, ShortCode: u.ShortCode, Title: u.Title, ClickCount: u.ClickCount,
+			}
+		}
+	}()
+
+	go func() {
+		defer wg.Done()
+		recentURLs, _ := s.urlRepo.GetRecentActivity(userID, 5)
+		dashboardData.RecentActivity = make([]response.DashboardActivityItem, len(recentURLs))
+		for i, u := range recentURLs {
+			dashboardData.RecentActivity[i] = response.DashboardActivityItem{
+				URLID: u.ID, ShortCode: u.ShortCode, Title: u.Title, LastClickedAt: u.LastClickedAt,
+			}
+		}
+	}()
+
+	wg.Wait()
+
+	return dashboardData, nil
 }
