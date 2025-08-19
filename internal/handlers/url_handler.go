@@ -84,7 +84,6 @@ func (h *URLHandler) CreateShortURL(c *gin.Context) {
 func (h *URLHandler) GetUserURLs(c *gin.Context) {
 	userID := c.MustGet("userID").(uuid.UUID)
 
-	// Parsing query parameters dengan nilai default
 	page, _ := strconv.Atoi(c.DefaultQuery("page", "1"))
 	limit, _ := strconv.Atoi(c.DefaultQuery("limit", "10"))
 	offset := (page - 1) * limit
@@ -103,7 +102,6 @@ func (h *URLHandler) GetUserURLs(c *gin.Context) {
 		return
 	}
 
-	// Mapping dari domain.URL ke DTO
 	urlResponses := make([]response.URLListItemResponse, len(result.URLs))
 	for i, url := range result.URLs {
 		shortURLString := fmt.Sprintf("%s/%s", h.cfg.Server.BaseURL, url.ShortCode)
@@ -144,17 +142,14 @@ func (h *URLHandler) GetUserURLs(c *gin.Context) {
 // @Failure 404 {object} response.APIErrorResponse "URL not found"
 // @Router /urls/{url_id} [get]
 func (h *URLHandler) GetURLDetails(c *gin.Context) {
-	// 1. Ambil parameter dari URL
 	urlID, err := uuid.Parse(c.Param("urlID"))
 	if err != nil {
 		response.SendError(c, http.StatusBadRequest, "VALIDATION_ERROR", "Invalid URL ID format", nil)
 		return
 	}
 
-	// 2. Ambil userID dari context (di-set oleh middleware)
 	userID := c.MustGet("userID").(uuid.UUID)
 
-	// 3. Panggil service
 	url, err := h.urlService.GetURLDetails(urlID, userID)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -171,7 +166,6 @@ func (h *URLHandler) GetURLDetails(c *gin.Context) {
 
 	shortURLString := fmt.Sprintf("%s/%s", h.cfg.Server.BaseURL, url.ShortCode)
 
-	// 4. Kirim respons sukses
 	c.JSON(http.StatusOK, response.URLDetailsSuccessResponse{
 		Success:   true,
 		Data:      response.ToURLDetailsResponse(url, shortURLString),

@@ -4,7 +4,6 @@ import (
 	"github.com/mssola/user_agent"
 )
 
-// ParsedUserAgent menampung hasil parsing dari User-Agent string.
 type ParsedUserAgent struct {
 	BrowserName    string
 	BrowserVersion string
@@ -13,7 +12,6 @@ type ParsedUserAgent struct {
 	DeviceType     string
 }
 
-// ParseUserAgent mem-parsing user agent string dan mengembalikan data terstruktur.
 func ParseUserAgent(uaString string) *ParsedUserAgent {
 	ua := user_agent.New(uaString)
 

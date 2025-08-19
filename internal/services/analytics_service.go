@@ -25,7 +25,6 @@ func NewAnalyticsService(urlRepo domain.URLRepository, clickRepo domain.ClickRep
 }
 
 func (s *analyticsService) GetURLAnalytics(urlID, userID uuid.UUID, period string) (*response.URLAnalyticsResponse, error) {
-	// 1. Verifikasi kepemilikan URL
 	url, err := s.urlRepo.FindByID(urlID)
 	if err != nil {
 		return nil, errors.New("URL_NOT_FOUND")
@@ -34,7 +33,6 @@ func (s *analyticsService) GetURLAnalytics(urlID, userID uuid.UUID, period strin
 		return nil, errors.New("URL_FORBIDDEN")
 	}
 
-	// 2. Tentukan rentang waktu
 	since := time.Now()
 	switch period {
 	case "24h":
@@ -43,16 +41,14 @@ func (s *analyticsService) GetURLAnalytics(urlID, userID uuid.UUID, period strin
 		since = since.AddDate(0, 0, -7)
 	case "30d":
 		since = since.AddDate(0, 0, -30)
-	default: // "all"
-		since = time.Time{} // Waktu nol
+	default:
+		since = time.Time{}
 	}
 
-	// 3. Panggil semua query agregasi secara paralel
 	var wg sync.WaitGroup
 	var analyticsData response.URLAnalyticsResponse
 	var errs = make(chan error, 10)
 
-	// Overview
 	wg.Add(3)
 	go func() {
 		defer wg.Done()
@@ -67,7 +63,6 @@ func (s *analyticsService) GetURLAnalytics(urlID, userID uuid.UUID, period strin
 		analyticsData.Overview.TopCountry, _ = s.clickRepo.GetTopCountry(urlID, since)
 	}()
 
-	// Lists
 	wg.Add(5)
 	go func() {
 		defer wg.Done()
@@ -101,7 +96,6 @@ func (s *analyticsService) GetURLAnalytics(urlID, userID uuid.UUID, period strin
 	return &analyticsData, nil
 }
 
-// Helper untuk mapping
 func mapTimeSeries(res []domain.TimeSeriesResult) []response.TimeSeriesStat {
 	stats := make([]response.TimeSeriesStat, len(res))
 	for i, r := range res {
@@ -121,7 +115,6 @@ func (s *analyticsService) GetUserDashboard(userID uuid.UUID) (*response.UserDas
 	var wg sync.WaitGroup
 	dashboardData := &response.UserDashboardResponse{}
 
-	// Panggil semua query secara paralel
 	wg.Add(3)
 
 	go func() {

@@ -34,22 +34,20 @@ import (
 // @in header
 // @name Authorization
 func main() {
-	// 1. Memuat konfigurasi
 	config, err := configs.LoadConfig(".")
 	if err != nil {
 		log.Fatalf("Tidak dapat memuat konfigurasi: %v", err)
 	}
 
-	// 2. Membuat koneksi database
 	db, err := database.NewPostgresConnection(&config.Database)
 	if err != nil {
 		return
 	}
 
-	// 3. Inisialisasi semua komponen (Dependency Injection)
 	userRepository := postgres.NewUserRepository(db)
 	urlRepository := postgres.NewURLRepository(db)
 	clickRepository := postgres.NewClickRepository(db)
+
 	authService := services.NewAuthService(userRepository, config)
 	userService := services.NewUserService(userRepository)
 	urlService := services.NewURLService(urlRepository, config)
@@ -57,6 +55,7 @@ func main() {
 	redirectService := services.NewRedirectService(urlRepository, clickRepository, geoipService, config)
 	analyticsService := services.NewAnalyticsService(urlRepository, clickRepository)
 	qrCodeService := services.NewQRCodeService(urlRepository, config)
+
 	authHandler := handlers.NewAuthHandler(authService, config)
 	profileHandler := handlers.NewProfileHandler(userService)
 	urlHandler := handlers.NewURLHandler(urlService, config)
@@ -64,17 +63,13 @@ func main() {
 	analyticsHandler := handlers.NewAnalyticsHandler(analyticsService)
 	qrCodeHandler := handlers.NewQRCodeHandler(qrCodeService)
 
-	// 4. Setup Gin Router
 	router := gin.Default()
 
 	router.GET("/:shortCode", redirectHandler.Redirect)
 	router.POST("/:shortCode/unlock", redirectHandler.UnlockURL)
 	router.GET("/:shortCode/info", redirectHandler.GetURLInfo)
-
-	// Route untuk Swagger UI
 	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
-	// Grup rute untuk API v1
 	apiV1 := router.Group("/api/v1")
 	routes.SetupAuthRoutes(apiV1, authHandler, config, userRepository)
 	routes.SetupProfileRoutes(apiV1, profileHandler, config, userRepository)
@@ -82,7 +77,6 @@ func main() {
 	routes.SetupAnalyticsRoutes(apiV1, analyticsHandler, config, userRepository)
 	routes.SetupQRCodeRoutes(apiV1, qrCodeHandler, config, userRepository)
 
-	// 5. Jalankan server
 	serverAddress := fmt.Sprintf(":%s", config.Server.Port)
 	log.Printf("Server berjalan di %s", serverAddress)
 	if err := router.Run(serverAddress); err != nil {

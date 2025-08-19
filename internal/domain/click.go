@@ -6,7 +6,6 @@ import (
 	"github.com/google/uuid"
 )
 
-// Click merepresentasikan data analitik dari setiap klik pada sebuah URL.
 type Click struct {
 	ID         uuid.UUID `gorm:"type:uuid;primary_key;default:uuid_generate_v4()"`
 	URLID      uuid.UUID `gorm:"type:uuid;not null"`
@@ -33,7 +32,6 @@ type GroupedResult struct {
 	Count int64
 }
 
-// ClickRepository mendefinisikan kontrak untuk penyimpanan data klik.
 type ClickRepository interface {
 	Store(click *Click) error
 	GetTotalClicks(urlID uuid.UUID, since time.Time) (int64, error)

@@ -1,6 +1,5 @@
 package request
 
-// RegisterRequest adalah DTO untuk request registrasi pengguna.
 type RegisterRequest struct {
 	Email     string `json:"email" binding:"required,email"`
 	Password  string `json:"password" binding:"required,min=8"`

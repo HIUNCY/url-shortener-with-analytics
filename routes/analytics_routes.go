@@ -9,14 +9,12 @@ import (
 )
 
 func SetupAnalyticsRoutes(router *gin.RouterGroup, analyticsHandler *handlers.AnalyticsHandler, cfg configs.Config, userRepo domain.UserRepository) {
-	// Grup baru untuk rute analitik umum
 	analyticsGroup := router.Group("/analytics")
 	analyticsGroup.Use(middleware.AuthMiddleware(cfg.JWT, userRepo))
 	{
 		analyticsGroup.GET("/dashboard", analyticsHandler.GetUserDashboard)
 	}
 
-	// Grup untuk analitik per URL
 	urlAnalyticsGroup := router.Group("/urls/:urlID/analytics")
 	urlAnalyticsGroup.Use(middleware.AuthMiddleware(cfg.JWT, userRepo))
 	{

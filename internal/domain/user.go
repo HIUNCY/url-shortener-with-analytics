@@ -6,7 +6,6 @@ import (
 	"github.com/google/uuid"
 )
 
-// User merepresentasikan entitas pengguna dalam sistem.
 type User struct {
 	ID           uuid.UUID  `gorm:"type:uuid;primary_key;default:uuid_generate_v4()"`
 	Email        string     `gorm:"unique;not null"`
@@ -21,7 +20,6 @@ type User struct {
 	LastLoginAt  *time.Time
 }
 
-// UserRepository mendefinisikan kontrak untuk interaksi data pengguna.
 type UserRepository interface {
 	Store(user *User) error
 	FindByID(id uuid.UUID) (*User, error)

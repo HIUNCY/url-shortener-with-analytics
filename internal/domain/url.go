@@ -6,7 +6,6 @@ import (
 	"github.com/google/uuid"
 )
 
-// URL adalah entitas inti yang merepresentasikan URL yang dipersingkat.
 type URL struct {
 	ID               uuid.UUID  `gorm:"type:uuid;primary_key;default:uuid_generate_v4()"`
 	UserID           *uuid.UUID `gorm:"type:uuid"`
@@ -40,7 +39,6 @@ type DashboardSummaryResult struct {
 	ActiveURLs  int64
 }
 
-// URLRepository mendefinisikan kontrak untuk interaksi data URL.
 type URLRepository interface {
 	Store(url *URL) error
 	FindByShortCode(shortCode string) (*URL, error)

@@ -24,7 +24,6 @@ func NewQRCodeService(urlRepo domain.URLRepository, cfg configs.Config) QRCodeSe
 	return &qrCodeService{urlRepo: urlRepo, cfg: cfg}
 }
 
-// getAndVerifyURL adalah fungsi internal untuk menghindari duplikasi kode.
 func (s *qrCodeService) getAndVerifyURL(urlID, userID uuid.UUID) (*domain.URL, error) {
 	url, err := s.urlRepo.FindByID(urlID)
 	if err != nil {

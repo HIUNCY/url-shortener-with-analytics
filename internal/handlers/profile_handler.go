@@ -73,7 +73,7 @@ func (h *ProfileHandler) UpdateProfile(c *gin.Context) {
 // @Accept   json
 // @Produce  json
 // @Param    passwords body request.ChangePasswordRequest true "Password Change Info"
-// @Success 200 {object} response.SuccessMessageResponse // <-- Anotasi sudah benar
+// @Success 200 {object} response.SuccessMessageResponse
 // @Failure 400 {object} response.APIErrorResponse "Validation error"
 // @Failure 401 {object} response.APIErrorResponse "Invalid current password"
 // @Router /profile/password [put]

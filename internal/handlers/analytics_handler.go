@@ -37,7 +37,10 @@ func (h *AnalyticsHandler) GetURLAnalytics(c *gin.Context) {
 
 	analyticsData, err := h.analyticsService.GetURLAnalytics(urlID, userID, period)
 	if err != nil {
-		// Handle not found, forbidden, etc.
+		if err.Error() == "URL_FORBIDDEN" {
+			response.SendError(c, http.StatusForbidden, "FORBIDDEN", "You do not have permission to view this URL", nil)
+			return
+		}
 		response.SendError(c, http.StatusNotFound, "NOT_FOUND", "Could not retrieve analytics for URL", nil)
 		return
 	}

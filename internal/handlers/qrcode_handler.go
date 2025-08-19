@@ -39,7 +39,10 @@ func (h *QRCodeHandler) GetQRCode(c *gin.Context) {
 
 	_, qrCode, err := h.qrCodeService.GetQRCodeInfo(urlID, userID, size, "png")
 	if err != nil {
-		// Handle not found, forbidden errors...
+		if err.Error() == "URL_FORBIDDEN" {
+			response.SendError(c, http.StatusForbidden, "FORBIDDEN", "You do not have permission to view this URL", nil)
+			return
+		}
 		response.SendError(c, http.StatusNotFound, "NOT_FOUND", "Cannot generate QR code for the URL", nil)
 		return
 	}

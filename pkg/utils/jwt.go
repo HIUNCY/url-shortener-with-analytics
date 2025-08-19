@@ -8,13 +8,11 @@ import (
 	"github.com/google/uuid"
 )
 
-// JWTCustomClaims adalah custom claims untuk token JWT kita.
 type JWTCustomClaims struct {
 	UserID uuid.UUID `json:"user_id"`
 	jwt.RegisteredClaims
 }
 
-// GenerateToken membuat access token dan refresh token.
 func GenerateToken(userID uuid.UUID, secretKey string, expiresIn time.Duration) (string, error) {
 	claims := &JWTCustomClaims{
 		UserID: userID,
@@ -28,7 +26,6 @@ func GenerateToken(userID uuid.UUID, secretKey string, expiresIn time.Duration) 
 	return token.SignedString([]byte(secretKey))
 }
 
-// ValidateToken memvalidasi token dan mengembalikan claims.
 func ValidateToken(tokenString, secretKey string) (*JWTCustomClaims, error) {
 	token, err := jwt.ParseWithClaims(tokenString, &JWTCustomClaims{}, func(token *jwt.Token) (interface{}, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {

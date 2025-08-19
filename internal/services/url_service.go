@@ -44,14 +44,12 @@ func NewURLService(urlRepo domain.URLRepository, cfg configs.Config) URLService 
 func (s *urlService) CreateShortURL(userID uuid.UUID, req request.CreateURLRequest) (*CreateURLResult, error) {
 	shortCode := ""
 	if req.CustomAlias != nil && *req.CustomAlias != "" {
-		// Cek ketersediaan custom alias
 		_, err := s.urlRepo.FindByCustomAlias(*req.CustomAlias)
 		if !errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, errors.New("URL_CUSTOM_ALIAS_EXISTS")
 		}
 		shortCode = *req.CustomAlias
 	} else {
-		// Generate short code acak dan pastikan unik
 		for {
 			newCode, err := utils.GenerateShortCode()
 			if err != nil {
@@ -92,7 +90,6 @@ func (s *urlService) CreateShortURL(userID uuid.UUID, req request.CreateURLReque
 	shortURLString := fmt.Sprintf("%s/%s", s.cfg.Server.BaseURL, newURL.ShortCode)
 	qrCode, err := utils.GenerateQRCodeBase64(shortURLString, 256)
 	if err != nil {
-		// Log error tapi jangan gagalkan proses utama
 		fmt.Printf("Gagal generate QR Code untuk URL %s: %v\n", newURL.ID, err)
 	}
 
@@ -128,14 +125,11 @@ func (s *urlService) GetUserURLs(userID uuid.UUID, options *domain.FindAllOption
 }
 
 func (s *urlService) GetURLDetails(urlID, userID uuid.UUID) (*domain.URL, error) {
-	// 1. Ambil URL berdasarkan ID-nya
 	url, err := s.urlRepo.FindByID(urlID)
 	if err != nil {
-		// Jika tidak ditemukan, gorm.ErrRecordNotFound akan dikembalikan
 		return nil, err
 	}
 
-	// 2. Validasi Kepemilikan (Authorization)
 	if url.UserID == nil || *url.UserID != userID {
 		return nil, errors.New("URL_FORBIDDEN")
 	}
@@ -144,7 +138,6 @@ func (s *urlService) GetURLDetails(urlID, userID uuid.UUID) (*domain.URL, error)
 }
 
 func (s *urlService) UpdateURL(urlID, userID uuid.UUID, req request.UpdateURLRequest) (*domain.URL, error) {
-	// Ambil URL dan verifikasi kepemilikan (sama seperti GetURLDetails)
 	url, err := s.urlRepo.FindByID(urlID)
 	if err != nil {
 		return nil, err
@@ -153,7 +146,6 @@ func (s *urlService) UpdateURL(urlID, userID uuid.UUID, req request.UpdateURLReq
 		return nil, errors.New("URL_FORBIDDEN")
 	}
 
-	// Perbarui field jika ada di request
 	if req.Title != nil {
 		url.Title = req.Title
 	}
@@ -167,7 +159,6 @@ func (s *urlService) UpdateURL(urlID, userID uuid.UUID, req request.UpdateURLReq
 		url.IsActive = *req.IsActive
 	}
 
-	// Simpan perubahan ke database
 	if err := s.urlRepo.Update(url); err != nil {
 		return nil, err
 	}
@@ -175,7 +166,6 @@ func (s *urlService) UpdateURL(urlID, userID uuid.UUID, req request.UpdateURLReq
 }
 
 func (s *urlService) DeleteURL(urlID, userID uuid.UUID) error {
-	// Ambil URL dan verifikasi kepemilikan
 	url, err := s.urlRepo.FindByID(urlID)
 	if err != nil {
 		return err
@@ -184,6 +174,5 @@ func (s *urlService) DeleteURL(urlID, userID uuid.UUID) error {
 		return errors.New("URL_FORBIDDEN")
 	}
 
-	// Hapus URL (soft delete)
 	return s.urlRepo.Delete(url)
 }

@@ -10,7 +10,6 @@ type userRepository struct {
 	db *gorm.DB
 }
 
-// NewUserRepository membuat instance baru dari userRepository.
 func NewUserRepository(db *gorm.DB) domain.UserRepository {
 	return &userRepository{db: db}
 }
@@ -25,7 +24,6 @@ func (r *userRepository) FindByEmail(email string) (*domain.User, error) {
 	return &user, err
 }
 
-// Implementasi method lain dari interface bisa ditambahkan di sini nanti.
 func (r *userRepository) FindByID(id uuid.UUID) (*domain.User, error) {
 	var user domain.User
 	err := r.db.Where("id = ?", id).First(&user).Error

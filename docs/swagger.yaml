@@ -121,6 +121,15 @@ definitions:
       timestamp:
         type: string
     type: object
+  response.AnalyticsOverview:
+    properties:
+      top_country:
+        type: string
+      top_referrer:
+        type: string
+      total_clicks:
+        type: integer
+    type: object
   response.CreateURLResponse:
     properties:
       created_at:
@@ -155,6 +164,37 @@ definitions:
       timestamp:
         type: string
     type: object
+  response.DashboardActivityItem:
+    properties:
+      last_clicked_at:
+        type: string
+      short_code:
+        type: string
+      title:
+        type: string
+      url_id:
+        type: string
+    type: object
+  response.DashboardSummary:
+    properties:
+      active_urls:
+        type: integer
+      total_clicks:
+        type: integer
+      total_urls:
+        type: integer
+    type: object
+  response.DashboardTopURL:
+    properties:
+      click_count:
+        type: integer
+      short_code:
+        type: string
+      title:
+        type: string
+      url_id:
+        type: string
+    type: object
   response.ErrorDetail:
     properties:
       field:
@@ -171,6 +211,13 @@ definitions:
           $ref: '#/definitions/response.ErrorDetail'
         type: array
       message:
+        type: string
+    type: object
+  response.GroupedStat:
+    properties:
+      count:
+        type: integer
+      value:
         type: string
     type: object
   response.LoginResponse:
@@ -216,6 +263,27 @@ definitions:
       timestamp:
         type: string
     type: object
+  response.QRCodeResponse:
+    properties:
+      download_url:
+        type: string
+      format:
+        type: string
+      qr_code:
+        type: string
+      size:
+        type: integer
+    type: object
+  response.QRCodeSuccessResponse:
+    properties:
+      data:
+        $ref: '#/definitions/response.QRCodeResponse'
+      success:
+        example: true
+        type: boolean
+      timestamp:
+        type: string
+    type: object
   response.RefreshTokenResponse:
     properties:
       access_token:
@@ -254,6 +322,52 @@ definitions:
       message:
         example: Operation successful
         type: string
+      success:
+        example: true
+        type: boolean
+      timestamp:
+        type: string
+    type: object
+  response.TimeSeriesStat:
+    properties:
+      clicks:
+        type: integer
+      date:
+        type: string
+    type: object
+  response.URLAnalyticsResponse:
+    properties:
+      browsers:
+        items:
+          $ref: '#/definitions/response.GroupedStat'
+        type: array
+      clicks_over_time:
+        items:
+          $ref: '#/definitions/response.TimeSeriesStat'
+        type: array
+      countries:
+        items:
+          $ref: '#/definitions/response.GroupedStat'
+        type: array
+      devices:
+        items:
+          $ref: '#/definitions/response.GroupedStat'
+        type: array
+      operating_systems:
+        items:
+          $ref: '#/definitions/response.GroupedStat'
+        type: array
+      overview:
+        $ref: '#/definitions/response.AnalyticsOverview'
+      referrers:
+        items:
+          $ref: '#/definitions/response.GroupedStat'
+        type: array
+    type: object
+  response.URLAnalyticsSuccessResponse:
+    properties:
+      data:
+        $ref: '#/definitions/response.URLAnalyticsResponse'
       success:
         example: true
         type: boolean
@@ -389,6 +503,29 @@ definitions:
       timestamp:
         type: string
     type: object
+  response.UserDashboardResponse:
+    properties:
+      recent_activity:
+        items:
+          $ref: '#/definitions/response.DashboardActivityItem'
+        type: array
+      summary:
+        $ref: '#/definitions/response.DashboardSummary'
+      top_performing_urls:
+        items:
+          $ref: '#/definitions/response.DashboardTopURL'
+        type: array
+    type: object
+  response.UserDashboardSuccessResponse:
+    properties:
+      data:
+        $ref: '#/definitions/response.UserDashboardResponse'
+      success:
+        example: true
+        type: boolean
+      timestamp:
+        type: string
+    type: object
   response.UserResponse:
     properties:
       api_key:
@@ -482,6 +619,25 @@ paths:
       summary: Unlock a password-protected URL
       tags:
       - Redirection
+  /analytics/dashboard:
+    get:
+      description: Retrieves summary analytics for the authenticated user's dashboard.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.UserDashboardSuccessResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.APIErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Get user dashboard analytics
+      tags:
+      - Analytics
   /auth/login:
     post:
       consumes:
@@ -893,6 +1049,116 @@ paths:
       summary: Update a URL
       tags:
       - URLs
+  /urls/{url_id}/analytics:
+    get:
+      description: Retrieves detailed analytics for a specific URL.
+      parameters:
+      - description: URL ID
+        format: uuid
+        in: path
+        name: url_id
+        required: true
+        type: string
+      - default: 7d
+        description: Time period for analytics
+        enum:
+        - 24h
+        - 7d
+        - 30d
+        - all
+        in: query
+        name: period
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.URLAnalyticsSuccessResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.APIErrorResponse'
+        "404":
+          description: URL not found
+          schema:
+            $ref: '#/definitions/response.APIErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Get URL analytics
+      tags:
+      - Analytics
+  /urls/{url_id}/qr:
+    get:
+      description: Retrieves QR code as a base64 string and other info.
+      parameters:
+      - description: URL ID
+        format: uuid
+        in: path
+        name: url_id
+        required: true
+        type: string
+      - default: 256
+        description: QR code size in pixels
+        in: query
+        name: size
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.QRCodeSuccessResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.APIErrorResponse'
+        "404":
+          description: URL not found
+          schema:
+            $ref: '#/definitions/response.APIErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Get QR Code Info
+      tags:
+      - QR Codes
+  /urls/{url_id}/qr/download:
+    get:
+      description: Downloads the QR code image file.
+      parameters:
+      - description: URL ID
+        format: uuid
+        in: path
+        name: url_id
+        required: true
+        type: string
+      - default: 256
+        description: QR code size in pixels
+        in: query
+        name: size
+        type: integer
+      produces:
+      - image/png
+      responses:
+        "200":
+          description: QR Code Image
+          schema:
+            type: file
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.APIErrorResponse'
+        "404":
+          description: URL not found
+          schema:
+            $ref: '#/definitions/response.APIErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Download QR Code
+      tags:
+      - QR Codes
 securityDefinitions:
   ApiKeyAuth:
     in: header

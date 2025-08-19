@@ -27,7 +27,7 @@ func NewAuthHandler(authService services.AuthService, cfg configs.Config) *AuthH
 // @Accept  json
 // @Produce  json
 // @Param   user body request.RegisterRequest true "User Registration Info"
-// @Success 201 {object} response.RegisterSuccessResponse "User registered successfully" // <-- DIUBAH DI SINI
+// @Success 201 {object} response.RegisterSuccessResponse "User registered successfully"
 // @Failure 400 {object} response.APIErrorResponse "Validation error"
 // @Failure 409 {object} response.APIErrorResponse "Email already exists"
 // @Failure 500 {object} response.APIErrorResponse "Internal server error"
@@ -35,7 +35,6 @@ func NewAuthHandler(authService services.AuthService, cfg configs.Config) *AuthH
 func (h *AuthHandler) Register(c *gin.Context) {
 	var req request.RegisterRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		// Kita akan buat error detail nanti. Untuk sekarang, nil saja.
 		response.SendError(c, http.StatusBadRequest, "VALIDATION_ERROR", err.Error(), nil)
 		return
 	}
@@ -50,8 +49,6 @@ func (h *AuthHandler) Register(c *gin.Context) {
 		return
 	}
 
-	// Kirim respons sukses menggunakan struct baru.
-	// Helper generik kita hapus untuk sementara agar lebih jelas.
 	c.JSON(http.StatusCreated, response.RegisterSuccessResponse{
 		Success:   true,
 		Message:   "User registered successfully",
@@ -125,7 +122,6 @@ func (h *AuthHandler) RefreshToken(c *gin.Context) {
 		return
 	}
 
-	// Ambil durasi dari config untuk ditampilkan di response
 	expiresIn, _ := time.ParseDuration(h.cfg.JWT.ExpiresIn)
 
 	c.JSON(http.StatusOK, response.RefreshTokenSuccessResponse{
@@ -145,16 +141,10 @@ func (h *AuthHandler) RefreshToken(c *gin.Context) {
 // @Tags Authentication
 // @Security BearerAuth
 // @Produce  json
-// @Success 200 {object} response.SuccessMessageResponse "Logged out successfully" // <-- DIUBAH DI SINI
+// @Success 200 {object} response.SuccessMessageResponse "Logged out successfully"
 // @Failure 401 {object} response.APIErrorResponse "Unauthorized"
 // @Router /auth/logout [post]
 func (h *AuthHandler) Logout(c *gin.Context) {
-	// Middleware sudah memvalidasi token, jadi kita hanya perlu menjalankan logika logout dan mengirim respons sukses.
-
-	// Di masa depan, kita bisa ambil token dari header di sini dan meneruskannya ke service untuk di-blacklist.
-
-	// response.SendSuccess(c, http.StatusOK, "Logged out successfully", nil)
-	// Kita buat respons kustom karena data bisa nil
 	c.JSON(http.StatusOK, response.SuccessMessageResponse{
 		Success:   true,
 		Message:   "Logged out successfully",

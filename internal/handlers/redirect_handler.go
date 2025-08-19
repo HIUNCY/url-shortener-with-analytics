@@ -21,23 +21,19 @@ func NewRedirectHandler(redirectService services.RedirectService, cfg configs.Co
 	return &RedirectHandler{redirectService: redirectService, cfg: cfg}
 }
 
-// Redirect menangani request ke short URL
 func (h *RedirectHandler) Redirect(c *gin.Context) {
 	shortCode := c.Param("shortCode")
 
 	originalURL, err := h.redirectService.ProcessRedirect(c, shortCode)
 	if err != nil {
 		if err.Error() == "URL_PASSWORD_PROTECTED" {
-			// Nanti bisa redirect ke halaman input password
 			response.SendError(c, http.StatusUnauthorized, "PASSWORD_PROTECTED", "This URL is password protected", nil)
 			return
 		}
-		// Untuk semua error lain (not found, expired, inactive), kita tampilkan 404
-		c.HTML(http.StatusNotFound, "404.html", nil) // Anggap kita punya template 404.html
+		c.HTML(http.StatusNotFound, "404.html", nil)
 		return
 	}
 
-	// Lakukan redirect
 	c.Redirect(http.StatusFound, originalURL)
 }
 
@@ -69,7 +65,6 @@ func (h *RedirectHandler) UnlockURL(c *gin.Context) {
 			response.SendError(c, http.StatusUnauthorized, "INVALID_PASSWORD", "The provided password is incorrect", nil)
 			return
 		}
-		// Handle error not found, dll.
 		response.SendError(c, http.StatusNotFound, "NOT_FOUND", "URL not found or not password protected", nil)
 		return
 	}
@@ -102,7 +97,6 @@ func (h *RedirectHandler) GetURLInfo(c *gin.Context) {
 		return
 	}
 
-	// TODO: Ambil Base URL dari config
 	shortURLString := fmt.Sprintf("%s/%s", h.cfg.Server.BaseURL, result.URL.ShortCode)
 
 	c.JSON(http.StatusOK, response.URLInfoSuccessResponse{

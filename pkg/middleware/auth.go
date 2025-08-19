@@ -16,7 +16,6 @@ func AuthMiddleware(cfg configs.JWTConfig, userRepo domain.UserRepository) gin.H
 	return func(c *gin.Context) {
 		var userID uuid.UUID
 
-		// Coba autentikasi via Bearer Token
 		authHeader := c.GetHeader("Authorization")
 		if strings.HasPrefix(authHeader, "Bearer ") {
 			tokenString := strings.TrimPrefix(authHeader, "Bearer ")
@@ -27,7 +26,6 @@ func AuthMiddleware(cfg configs.JWTConfig, userRepo domain.UserRepository) gin.H
 			}
 			userID = claims.UserID
 		} else {
-			// Jika tidak ada Bearer Token, coba via API Key
 			apiKey := c.GetHeader("X-API-Key")
 			if apiKey == "" {
 				response.SendError(c, http.StatusUnauthorized, "UNAUTHORIZED", "Authorization header or X-API-Key header is required", nil)

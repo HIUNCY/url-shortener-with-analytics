@@ -6,7 +6,6 @@ import (
 	"github.com/google/uuid"
 )
 
-// Domain merepresentasikan custom domain yang didaftarkan oleh pengguna.
 type Domain struct {
 	ID                uuid.UUID `gorm:"type:uuid;primary_key;default:uuid_generate_v4()"`
 	UserID            uuid.UUID `gorm:"type:uuid;not null"`
@@ -18,7 +17,6 @@ type Domain struct {
 	VerifiedAt        *time.Time
 }
 
-// DomainRepository mendefinisikan kontrak untuk interaksi data domain.
 type DomainRepository interface {
 	Store(domain *Domain) error
 	FindByDomainName(name string) (*Domain, error)

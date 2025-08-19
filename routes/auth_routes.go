@@ -8,7 +8,6 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// SetupAuthRoutes mengatur rute untuk autentikasi.
 func SetupAuthRoutes(router *gin.RouterGroup, authHandler *handlers.AuthHandler, cfg configs.Config, userRepo domain.UserRepository) {
 	authGroup := router.Group("/auth")
 	{

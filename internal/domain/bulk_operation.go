@@ -6,7 +6,6 @@ import (
 	"github.com/google/uuid"
 )
 
-// BulkOperation merepresentasikan tugas pemrosesan URL secara massal.
 type BulkOperation struct {
 	ID             uuid.UUID `gorm:"type:uuid;primary_key;default:uuid_generate_v4()"`
 	UserID         uuid.UUID `gorm:"type:uuid;not null"`
@@ -22,7 +21,6 @@ type BulkOperation struct {
 	CompletedAt    *time.Time
 }
 
-// BulkOperationRepository mendefinisikan kontrak untuk interaksi data operasi massal.
 type BulkOperationRepository interface {
 	Store(op *BulkOperation) error
 	FindByID(id uuid.UUID) (*BulkOperation, error)

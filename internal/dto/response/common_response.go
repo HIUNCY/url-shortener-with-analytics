@@ -6,8 +6,6 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// APIResponse adalah struktur dasar untuk semua respons sukses.
-// Menggunakan generic type T untuk data payload.
 type APIResponse[T any] struct {
 	Success   bool      `json:"success"`
 	Message   string    `json:"message"`
@@ -15,13 +13,11 @@ type APIResponse[T any] struct {
 	Timestamp time.Time `json:"timestamp"`
 }
 
-// ErrorDetail mendeskripsikan error validasi untuk satu field.
 type ErrorDetail struct {
 	Field   string `json:"field"`
 	Message string `json:"message"`
 }
 
-// APIErrorResponse adalah struktur untuk semua respons error.
 type APIErrorResponse struct {
 	Success   bool         `json:"success"`
 	Error     ErrorPayload `json:"error"`
@@ -29,7 +25,6 @@ type APIErrorResponse struct {
 	RequestID string       `json:"request_id,omitempty"`
 }
 
-// ErrorPayload berisi detail dari error.
 type ErrorPayload struct {
 	Code    string        `json:"code"`
 	Message string        `json:"message"`
@@ -42,7 +37,6 @@ type SuccessMessageResponse struct {
 	Timestamp time.Time `json:"timestamp"`
 }
 
-// SendSuccess adalah helper untuk mengirim respons sukses.
 func SendSuccess[T any](c *gin.Context, statusCode int, message string, data T) {
 	c.JSON(statusCode, APIResponse[T]{
 		Success:   true,
@@ -52,7 +46,6 @@ func SendSuccess[T any](c *gin.Context, statusCode int, message string, data T) 
 	})
 }
 
-// SendError adalah helper untuk mengirim respons error.
 func SendError(c *gin.Context, statusCode int, code, message string, details []ErrorDetail) {
 	c.AbortWithStatusJSON(statusCode, APIErrorResponse{
 		Success: false,

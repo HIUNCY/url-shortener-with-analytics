@@ -7,7 +7,6 @@ import (
 	"github.com/google/uuid"
 )
 
-// CreateURLResponse adalah DTO untuk payload data pada respons pembuatan URL.
 type CreateURLResponse struct {
 	ID          uuid.UUID  `json:"id"`
 	OriginalURL string     `json:"original_url"`
@@ -20,7 +19,6 @@ type CreateURLResponse struct {
 	CreatedAt   time.Time  `json:"created_at"`
 }
 
-// CreateURLSuccessResponse adalah wrapper untuk Swagger.
 type CreateURLSuccessResponse struct {
 	Success   bool              `json:"success" example:"true"`
 	Message   string            `json:"message" example:"Short URL created successfully"`

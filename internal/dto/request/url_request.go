@@ -2,7 +2,6 @@ package request
 
 import "time"
 
-// CreateURLRequest adalah DTO untuk request pembuatan URL pendek.
 type CreateURLRequest struct {
 	OriginalURL string     `json:"original_url" binding:"required,url"`
 	CustomAlias *string    `json:"custom_alias,omitempty"`

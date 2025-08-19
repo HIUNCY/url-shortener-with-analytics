@@ -42,13 +42,11 @@ func NewRedirectService(urlRepo domain.URLRepository, clickRepo domain.ClickRepo
 }
 
 func (s *redirectService) ProcessRedirect(c *gin.Context, shortCode string) (string, error) {
-	// 1. Cari URL berdasarkan shortCode
 	url, err := s.urlRepo.FindByShortCode(shortCode)
 	if err != nil {
 		return "", errors.New("URL_NOT_FOUND")
 	}
 
-	// 2. Periksa status URL
 	if !url.IsActive {
 		return "", errors.New("URL_NOT_FOUND")
 	}
@@ -56,20 +54,15 @@ func (s *redirectService) ProcessRedirect(c *gin.Context, shortCode string) (str
 		return "", errors.New("URL_NOT_FOUND")
 	}
 	if url.PasswordHash != nil {
-		// Untuk sekarang, kita kembalikan error. Nanti ini bisa mengarah ke halaman password.
 		return "", errors.New("URL_PASSWORD_PROTECTED")
 	}
 
-	// 3. Jalankan pelacakan klik secara asynchronous (agar tidak memperlambat redirect)
 	go s.trackClick(c, url.ID)
 
-	// 4. Kembalikan URL asli untuk di-redirect
 	return url.OriginalURL, nil
 }
 
-// trackClick berjalan di background
 func (s *redirectService) trackClick(c *gin.Context, urlID uuid.UUID) {
-	// Update click count di tabel URLs
 	if err := s.urlRepo.IncrementClickCount(urlID); err != nil {
 		log.Printf("Error incrementing click count for URL %s: %v", urlID, err)
 	}
@@ -83,7 +76,6 @@ func (s *redirectService) trackClick(c *gin.Context, urlID uuid.UUID) {
 		log.Printf("Could not perform GeoIP lookup for IP %s: %v", clientIP, err)
 	}
 
-	// Simpan detail klik di tabel clicks
 	newClick := &domain.Click{
 		URLID:      urlID,
 		IPAddress:  clientIP,
@@ -102,25 +94,19 @@ func (s *redirectService) trackClick(c *gin.Context, urlID uuid.UUID) {
 }
 
 func (s *redirectService) UnlockURL(shortCode, password string) (*UnlockResult, error) {
-	// 1. Cari URL
 	url, err := s.urlRepo.FindByShortCode(shortCode)
 	if err != nil {
 		return nil, errors.New("URL_NOT_FOUND")
 	}
 
-	// 2. Cek apakah URL punya password
 	if url.PasswordHash == nil {
 		return nil, errors.New("URL_NOT_PROTECTED")
 	}
 
-	// 3. Verifikasi password
 	if !utils.CheckPasswordHash(password, *url.PasswordHash) {
 		return nil, errors.New("URL_INVALID_PASSWORD")
 	}
 
-	// 4. Buat token redirect sementara (berlaku 1 menit)
-	// Kita bisa gunakan kembali user ID dari URL, atau ID URL itu sendiri sebagai subjek.
-	// Di sini kita gunakan ID URL untuk membuatnya spesifik.
 	tempToken, err := utils.GenerateToken(url.ID, s.cfg.JWT.SecretKey, 1*time.Minute)
 	if err != nil {
 		return nil, err
@@ -133,26 +119,20 @@ func (s *redirectService) UnlockURL(shortCode, password string) (*UnlockResult, 
 }
 
 func (s *redirectService) GetURLInfo(shortCode string) (*InfoResult, error) {
-	// 1. Cari URL berdasarkan shortCode
 	url, err := s.urlRepo.FindByShortCode(shortCode)
 	if err != nil {
 		return nil, errors.New("URL_NOT_FOUND")
 	}
 
-	// 2. Periksa status URL (aktif & tidak kedaluwarsa)
 	if !url.IsActive || (url.ExpiresAt != nil && url.ExpiresAt.Before(time.Now())) {
 		return nil, errors.New("URL_NOT_FOUND")
 	}
 
-	// 3. Ekstrak domain dari URL asli
 	domainName, err := utils.GetDomainFromURL(url.OriginalURL)
 	if err != nil {
-		// Jika URL asli tidak valid, anggap domainnya kosong
 		domainName = ""
 	}
 
-	// 4. Lakukan pengecekan keamanan (simulasi)
-	// TODO: Integrasikan dengan Google Safe Browsing API atau sejenisnya di sini.
 	isSafe := true
 
 	return &InfoResult{

@@ -23,6 +23,37 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
+        "/analytics/dashboard": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Retrieves summary analytics for the authenticated user's dashboard.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Analytics"
+                ],
+                "summary": "Get user dashboard analytics",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.UserDashboardSuccessResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/response.APIErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/auth/login": {
             "post": {
                 "description": "Authenticates a user and returns an access token.",
@@ -671,6 +702,174 @@ const docTemplate = `{
                 }
             }
         },
+        "/urls/{url_id}/analytics": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Retrieves detailed analytics for a specific URL.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Analytics"
+                ],
+                "summary": "Get URL analytics",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "format": "uuid",
+                        "description": "URL ID",
+                        "name": "url_id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "enum": [
+                            "24h",
+                            "7d",
+                            "30d",
+                            "all"
+                        ],
+                        "type": "string",
+                        "default": "7d",
+                        "description": "Time period for analytics",
+                        "name": "period",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.URLAnalyticsSuccessResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/response.APIErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "URL not found",
+                        "schema": {
+                            "$ref": "#/definitions/response.APIErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/urls/{url_id}/qr": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Retrieves QR code as a base64 string and other info.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "QR Codes"
+                ],
+                "summary": "Get QR Code Info",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "format": "uuid",
+                        "description": "URL ID",
+                        "name": "url_id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "default": 256,
+                        "description": "QR code size in pixels",
+                        "name": "size",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.QRCodeSuccessResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/response.APIErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "URL not found",
+                        "schema": {
+                            "$ref": "#/definitions/response.APIErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/urls/{url_id}/qr/download": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Downloads the QR code image file.",
+                "produces": [
+                    "image/png"
+                ],
+                "tags": [
+                    "QR Codes"
+                ],
+                "summary": "Download QR Code",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "format": "uuid",
+                        "description": "URL ID",
+                        "name": "url_id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "default": 256,
+                        "description": "QR code size in pixels",
+                        "name": "size",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "QR Code Image",
+                        "schema": {
+                            "type": "file"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/response.APIErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "URL not found",
+                        "schema": {
+                            "$ref": "#/definitions/response.APIErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/{shortCode}/info": {
             "get": {
                 "description": "Retrieves public information about a short URL before redirecting.",
@@ -949,6 +1148,20 @@ const docTemplate = `{
                 }
             }
         },
+        "response.AnalyticsOverview": {
+            "type": "object",
+            "properties": {
+                "top_country": {
+                    "type": "string"
+                },
+                "top_referrer": {
+                    "type": "string"
+                },
+                "total_clicks": {
+                    "type": "integer"
+                }
+            }
+        },
         "response.CreateURLResponse": {
             "type": "object",
             "properties": {
@@ -1000,6 +1213,54 @@ const docTemplate = `{
                 }
             }
         },
+        "response.DashboardActivityItem": {
+            "type": "object",
+            "properties": {
+                "last_clicked_at": {
+                    "type": "string"
+                },
+                "short_code": {
+                    "type": "string"
+                },
+                "title": {
+                    "type": "string"
+                },
+                "url_id": {
+                    "type": "string"
+                }
+            }
+        },
+        "response.DashboardSummary": {
+            "type": "object",
+            "properties": {
+                "active_urls": {
+                    "type": "integer"
+                },
+                "total_clicks": {
+                    "type": "integer"
+                },
+                "total_urls": {
+                    "type": "integer"
+                }
+            }
+        },
+        "response.DashboardTopURL": {
+            "type": "object",
+            "properties": {
+                "click_count": {
+                    "type": "integer"
+                },
+                "short_code": {
+                    "type": "string"
+                },
+                "title": {
+                    "type": "string"
+                },
+                "url_id": {
+                    "type": "string"
+                }
+            }
+        },
         "response.ErrorDetail": {
             "type": "object",
             "properties": {
@@ -1024,6 +1285,17 @@ const docTemplate = `{
                     }
                 },
                 "message": {
+                    "type": "string"
+                }
+            }
+        },
+        "response.GroupedStat": {
+            "type": "object",
+            "properties": {
+                "count": {
+                    "type": "integer"
+                },
+                "value": {
                     "type": "string"
                 }
             }
@@ -1093,6 +1365,38 @@ const docTemplate = `{
                 }
             }
         },
+        "response.QRCodeResponse": {
+            "type": "object",
+            "properties": {
+                "download_url": {
+                    "type": "string"
+                },
+                "format": {
+                    "type": "string"
+                },
+                "qr_code": {
+                    "type": "string"
+                },
+                "size": {
+                    "type": "integer"
+                }
+            }
+        },
+        "response.QRCodeSuccessResponse": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "$ref": "#/definitions/response.QRCodeResponse"
+                },
+                "success": {
+                    "type": "boolean",
+                    "example": true
+                },
+                "timestamp": {
+                    "type": "string"
+                }
+            }
+        },
         "response.RefreshTokenResponse": {
             "type": "object",
             "properties": {
@@ -1148,6 +1452,76 @@ const docTemplate = `{
                 "message": {
                     "type": "string",
                     "example": "Operation successful"
+                },
+                "success": {
+                    "type": "boolean",
+                    "example": true
+                },
+                "timestamp": {
+                    "type": "string"
+                }
+            }
+        },
+        "response.TimeSeriesStat": {
+            "type": "object",
+            "properties": {
+                "clicks": {
+                    "type": "integer"
+                },
+                "date": {
+                    "type": "string"
+                }
+            }
+        },
+        "response.URLAnalyticsResponse": {
+            "type": "object",
+            "properties": {
+                "browsers": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/response.GroupedStat"
+                    }
+                },
+                "clicks_over_time": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/response.TimeSeriesStat"
+                    }
+                },
+                "countries": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/response.GroupedStat"
+                    }
+                },
+                "devices": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/response.GroupedStat"
+                    }
+                },
+                "operating_systems": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/response.GroupedStat"
+                    }
+                },
+                "overview": {
+                    "$ref": "#/definitions/response.AnalyticsOverview"
+                },
+                "referrers": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/response.GroupedStat"
+                    }
+                }
+            }
+        },
+        "response.URLAnalyticsSuccessResponse": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "$ref": "#/definitions/response.URLAnalyticsResponse"
                 },
                 "success": {
                     "type": "boolean",
@@ -1344,6 +1718,41 @@ const docTemplate = `{
             "properties": {
                 "data": {
                     "$ref": "#/definitions/response.UnlockURLResponse"
+                },
+                "success": {
+                    "type": "boolean",
+                    "example": true
+                },
+                "timestamp": {
+                    "type": "string"
+                }
+            }
+        },
+        "response.UserDashboardResponse": {
+            "type": "object",
+            "properties": {
+                "recent_activity": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/response.DashboardActivityItem"
+                    }
+                },
+                "summary": {
+                    "$ref": "#/definitions/response.DashboardSummary"
+                },
+                "top_performing_urls": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/response.DashboardTopURL"
+                    }
+                }
+            }
+        },
+        "response.UserDashboardSuccessResponse": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "$ref": "#/definitions/response.UserDashboardResponse"
                 },
                 "success": {
                     "type": "boolean",
