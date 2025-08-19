@@ -56,11 +56,13 @@ func main() {
 	geoipService := geoip.NewGeoIPService(config.GeoIP)
 	redirectService := services.NewRedirectService(urlRepository, clickRepository, geoipService, config)
 	analyticsService := services.NewAnalyticsService(urlRepository, clickRepository)
+	qrCodeService := services.NewQRCodeService(urlRepository, config)
 	authHandler := handlers.NewAuthHandler(authService, config)
 	profileHandler := handlers.NewProfileHandler(userService)
 	urlHandler := handlers.NewURLHandler(urlService, config)
 	redirectHandler := handlers.NewRedirectHandler(redirectService, config)
 	analyticsHandler := handlers.NewAnalyticsHandler(analyticsService)
+	qrCodeHandler := handlers.NewQRCodeHandler(qrCodeService)
 
 	// 4. Setup Gin Router
 	router := gin.Default()
@@ -78,6 +80,7 @@ func main() {
 	routes.SetupProfileRoutes(apiV1, profileHandler, config, userRepository)
 	routes.SetupURLRoutes(apiV1, urlHandler, config, userRepository)
 	routes.SetupAnalyticsRoutes(apiV1, analyticsHandler, config, userRepository)
+	routes.SetupQRCodeRoutes(apiV1, qrCodeHandler, config, userRepository)
 
 	// 5. Jalankan server
 	serverAddress := fmt.Sprintf(":%s", config.Server.Port)
