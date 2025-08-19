@@ -23,7 +23,26 @@ type Click struct {
 	ClickedAt  time.Time
 }
 
+type TimeSeriesResult struct {
+	Date  time.Time `gorm:"type:date"`
+	Count int64
+}
+
+type GroupedResult struct {
+	Value string
+	Count int64
+}
+
 // ClickRepository mendefinisikan kontrak untuk penyimpanan data klik.
 type ClickRepository interface {
 	Store(click *Click) error
+	GetTotalClicks(urlID uuid.UUID, since time.Time) (int64, error)
+	GetTopReferrer(urlID uuid.UUID, since time.Time) (string, error)
+	GetTopCountry(urlID uuid.UUID, since time.Time) (string, error)
+	GetClicksOverTime(urlID uuid.UUID, since time.Time) ([]TimeSeriesResult, error)
+	GetTopCountries(urlID uuid.UUID, since time.Time, limit int) ([]GroupedResult, error)
+	GetTopReferrers(urlID uuid.UUID, since time.Time, limit int) ([]GroupedResult, error)
+	GetDeviceStats(urlID uuid.UUID, since time.Time) ([]GroupedResult, error)
+	GetBrowserStats(urlID uuid.UUID, since time.Time) ([]GroupedResult, error)
+	GetOSStats(urlID uuid.UUID, since time.Time) ([]GroupedResult, error)
 }
