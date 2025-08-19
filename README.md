@@ -16,6 +16,7 @@ A robust and feature-rich URL Shortener service built with Go, complete with cli
 - [Tech Stack](#tech-stack)
 - [Getting Started](#getting-started)
 - [Usage](#usage)
+- [API Testing with Postman](#api-testing-with-postman)
 - [API Documentation](#api-documentation)
 - [Contact](#contact)
 
@@ -71,13 +72,14 @@ To get a local copy up and running, follow these simple steps.
 -   Go version 1.18 or higher.
 -   A running PostgreSQL server.
 -   A [MaxMind](https://www.maxmind.com/en/geolite2/signup) account to download the GeoIP database.
+-   [Postman](https://www.postman.com/downloads/) (Optional, for API testing).
 
 ### Installation
 
 1.  **Clone the repo:**
     ```sh
-    git clone [https://github.com/your-username/your-repo-name.git](https://github.com/your-username/your-repo-name.git)
-    cd your-repo-name
+    git clone https://github.com/HIUNCY/url-shortener-with-analytics
+    cd url-shortener-with-analytics
     ```
 
 2.  **Install Go dependencies:**
@@ -101,7 +103,7 @@ To get a local copy up and running, follow these simple steps.
 
 ## Usage
 
-After the installation is complete, you can run the server and access the API documentation.
+After the installation is complete, you can run the server.
 
 1.  **Run the Server:**
     ```sh
@@ -109,18 +111,27 @@ After the installation is complete, you can run the server and access the API do
     ```
     The server will be running at `http://localhost:8080` (or your configured port).
 
-2.  **Access API Documentation:**
-    -   Open your browser and navigate to:
-        `http://localhost:8080/swagger/index.html`
-    -   You will see the interactive API documentation where you can test all the endpoints directly.
+---
+
+## API Testing with Postman
+
+This project includes a Postman collection and environment file for easy API testing.
+
+1.  **Open Postman** and go to `File > Import`.
+2.  **Import the Collection:** Select the `URL Shortener with Analytics.postman_collection.json` file from the project root.
+3.  **Import the Environment:** Import the `uswa.postman_environment.json` file.
+4.  **Select the Environment:** In the top-right corner of Postman, select the "uswa" environment from the dropdown menu.
+5.  You can now use the pre-configured requests in the collection to test the API. The collection is set up to automatically handle authentication tokens after you log in.
 
 ---
 
 ## API Documentation
 
-Complete documentation for all endpoints is available via the Swagger UI.
+For a more detailed and interactive API specification, you can use the built-in Swagger documentation.
 
--   **Base URL**: `/api/v1`
+-   **Access the Docs:** With the server running, open your browser and navigate to:
+    `http://localhost:8080/swagger/index.html`
+
 -   **Main Endpoints**:
     -   `/auth`: Register, Login, Refresh Token, Logout.
     -   `/profile`: User profile management.
